@@ -4,7 +4,6 @@ This repository is devoted to source files relating to the integration of DataJo
 
 ### Directories
 
-* **Schema_md** Schemas described in markdown or other free text
-* **Schema_Python** Schemas implemented in python
-* **Schema_matlab** Schemas implemented in matlab
-* **DataJoint_examples** Example educational notebooks from datajoint.
+* **Project Schemas** Functional schemas made for laboratory experiments.
+* **Markdown Schemas** Schemas described in markdown or other free text with no code.
+* **Example Schemas** Example educational notebooks from datajoint.
