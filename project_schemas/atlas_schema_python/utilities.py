@@ -52,6 +52,43 @@ brain_names_dic = {'MD585':['thionin','CSHL',True,'sagittal'],
 brain_names_list = brain_names_dic.keys()
 
 
+#                  OBJECT INFO
+        # bucket_name: mousebraindata-open 
+        # object_name: b'MD657/MD657-F1-2017.02.17-17.39.26_MD657_1_0001.png' 
+        # last_modified: 2018-08-29 04:16:33+00:00 
+        # etag: 2ea51d17c3b6ad95209ec65aa59325cc 
+        # size: 900864 
+        # content_type: None
+        # is_dir: False
+        # metadata: None
+def get_raw_files( stack, returntype="string" ):
+    client = get_client()
+    bucket_name='mousebrainatlas-rawdata'
+    if 'UCSD' in stack:
+        rel_fp = 'UCSD_data/'+stack+'/'
+    else: 
+        rel_fp = 'CSHL_data/'+stack+'/'
+    # 'Objects' contains information on every item in the specified path
+    objects = client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
+    
+    if returntype=="string":
+        fp_data = ""
+    elif returntype=="list":
+        fp_data = []
+        
+    num_files = 0
+    for object in objects:
+        filename = object.object_name
+        if filename.endswith('_raw.tif') or filename.endswith('_lossless.jp2'):
+            num_files += 1
+            if returntype=="string":
+                fp_data = fp_data+"|"+filename
+            elif returntype=="list":
+                fp_data.append(filename)
+
+    return fp_data
+
+
 def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionary, list
     sorted_filenames = client.get_object('mousebrainatlas-data', 'CSHL_data_processed/'+stack_name+\
                                          '/'+stack_name+'_sorted_filenames.txt').data.decode()
@@ -89,7 +126,7 @@ def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionar
         if returntype=="string":
             sorted_fn_data = sorted_fn_data + line + "\n"
         elif returntype=="dictionary":
-            sorted_fn_data[ int(slice_number) ] = slice_name
+            sorted_fn_data[ slice_number ] = slice_name
         elif returntype=="list":
             sorted_fn_data.append( str(line) )
 
