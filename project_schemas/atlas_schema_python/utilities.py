@@ -82,16 +82,60 @@ def get_raw_files( stack, returntype="string" ):
         if filename.endswith('_raw.tif') or filename.endswith('_lossless.jp2'):
             num_files += 1
             if returntype=="string":
-                fp_data = fp_data+"|"+filename
+                if fp_data=="":
+                    fp_data = filename
+                else:
+                    fp_data = fp_data+"|"+filename
             elif returntype=="list":
                 fp_data.append(filename)
 
+    return fp_data
+
+def get_processed_files( stack, prep_id="2", version="", resol="thumbnail", returntype="string" ):
+    # prep_id only used as a string
+    prep_id = str(prep_id)
+    # add the underscore prefix if does not currently exist
+    if version!="" and version[0]!="_":
+        version = "_"+version
+    
+    
+    client = get_client()
+    bucket_name='mousebrainatlas-data'
+    rel_fp = 'CSHL_data_processed/'+stack+'/'+stack+'_prep'+prep_id+'_'+resol+'/'
+    # 'Objects' contains information on every item in the specified path
+    objects = client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
+    
+    if returntype=="string":
+        fp_data = ""
+    elif returntype=="list":
+        fp_data = []
+    
+    num_files = 0
+    for object in objects:
+        filename = object.object_name
+        if filename.endswith('.tif'):
+            num_files += 1
+            if returntype=="string":
+                if fp_data=="":
+                    fp_data = filename
+                else:
+                    fp_data = fp_data+"|"+filename
+            elif returntype=="list":
+                fp_data.append(filename)
+#             print(filename)
+            
+    # If no valid could be found, then try using "lossless" instead of "raw"
+    if (fp_data=="" or fp_data==[]) and resol=="raw":
+        fp_data = get_processed_files( stack, prep_id=prep_id, version=version, \
+                                      resol="lossless", returntype=returntype )
+    
     return fp_data
 
 
 def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionary, list
     sorted_filenames = client.get_object('mousebrainatlas-data', 'CSHL_data_processed/'+stack_name+\
                                          '/'+stack_name+'_sorted_filenames.txt').data.decode()
+    separator = "|"
 
     if returntype=="string":
         sorted_fn_data = ""
@@ -124,7 +168,7 @@ def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionar
 
 
         if returntype=="string":
-            sorted_fn_data = sorted_fn_data + line + "\n"
+            sorted_fn_data = sorted_fn_data + line + separator
         elif returntype=="dictionary":
             sorted_fn_data[ slice_number ] = slice_name
         elif returntype=="list":
