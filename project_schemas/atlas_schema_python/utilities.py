@@ -7,15 +7,14 @@ import json
 def get_client():
     return Minio( 's3.amazonaws.com', secure=True, **creds)
 
-# {"access_key": "AKIAILJ3D6LCUFTRIGTA", "secret_key": "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"}
+
+global creds
 # load S3 access_key and secret_key
 # The file s3-creds.json should contain the following:
 # {"access_key": "...", "secret_key": "..."}
-#with open('s3-creds.json') as f:
-#    creds = json.load(f)
-global creds
-creds = {"access_key": "AKIAJEM7CNK2LW7JIXOQ", "secret_key": "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", \
-             "region": "us-west-1"}
+with open('/Users/newberry/Desktop/atlas_data/alex_aws_credentials.json') as f:
+    creds = json.load(f)
+    
 global client
 client = get_client()
 
