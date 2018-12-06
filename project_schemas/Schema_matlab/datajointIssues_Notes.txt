@@ -1,0 +1,6 @@
+ERD : Format "png" not recognized. -> in conda environment run "dot -c"
+
+fetch.as_dict() doesnt appear to exist
+
+populating tables that are initially empty in MATLAB throws an error. -> insert1 dummy data manually in python, then populate in MATLAB. (Remove dummy data later)
+
