@@ -2,6 +2,7 @@ import datajoint as dj
 import numpy as np
 from minio import Minio
 import json
+import sys
 
 
 def get_client():
@@ -12,8 +13,12 @@ global creds
 # load S3 access_key and secret_key
 # The file s3-creds.json should contain the following:
 # {"access_key": "...", "secret_key": "..."}
-with open('/Users/newberry/Desktop/atlas_data/alex_aws_credentials.json') as f:
-    creds = json.load(f)
+if sys.platform=='darwin':
+    with open('/Users/newberry/Desktop/atlas_data/alex_aws_credentials.json') as f:
+        creds = json.load(f)
+elif sys.platform=='linux':
+    with open('/mnt/c/Users/Alex/Documents/json_credentials/alex_aws_credentials.json') as f:
+        creds = json.load(f)
     
 global client
 client = get_client()
