@@ -1,6 +1,6 @@
 ## Project Schemas
 
-Each folder represents a different database with an associated schema. 
+Each folder represents a different Datajoint database with an associated schema. Short, high level descriptions of each are below.
 
 Current Schema:
   - atlas_schema_python
