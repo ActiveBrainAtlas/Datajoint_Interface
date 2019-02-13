@@ -7,6 +7,8 @@ import sys
 
 def get_client():
     return Minio( 's3.amazonaws.com', secure=True, **creds)
+global client
+client = get_client()
 
 
 global creds
@@ -19,9 +21,6 @@ if sys.platform=='darwin':
 elif sys.platform=='linux':
     with open('/mnt/c/Users/Alex/Documents/json_credentials/alex_aws_credentials.json') as f:
         creds = json.load(f)
-    
-global client
-client = get_client()
 
 
 global brain_names_dic
