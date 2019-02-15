@@ -12,5 +12,5 @@ The following are a list of relevant files:
   - Notebook demonstrates certain mySQL commands through the package pymysql including listing users, permissions, and making queries.
 - `config.ipynb`
   - Simply commands that set sets up the Datajoint environment for a particular user.
-- 'utilities.py'
+- `utilities.py`
   - Contains utility functions including loading json credentials, retrieving files from S3, and loading information about brains in the Active Atlas
