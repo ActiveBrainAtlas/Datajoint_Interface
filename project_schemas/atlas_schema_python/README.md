@@ -1,6 +1,6 @@
 ## Alas Schema
 
-This directory contains all necessary files for the integration of Datajoint into the Atlas Project. The active schema is currently on its second version and so all updated files are appended with "v2".
+This directory contains all necessary files for the integration of Datajoint into the Atlas Project. The active schema is currently on its second version and so all updated files are appended with "__v2__".
 
 The following are a list of relevant files:
 
