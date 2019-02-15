@@ -4,13 +4,7 @@ from minio import Minio
 import json
 import sys
 
-
-def get_client():
-    return Minio( 's3.amazonaws.com', secure=True, **creds)
-global client
-client = get_client()
-
-
+# LOAD S3 Credentials
 global creds
 # load S3 access_key and secret_key
 # The file s3-creds.json should contain the following:
@@ -21,6 +15,23 @@ if sys.platform=='darwin':
 elif sys.platform=='linux':
     with open('/mnt/c/Users/Alex/Documents/json_credentials/alex_aws_credentials.json') as f:
         creds = json.load(f)
+# LOAD DataBase admin Credentials    
+global db_admin_creds
+# load S3 access_key and secret_key
+# The file s3-creds.json should contain the following:
+# {"access_key": "...", "secret_key": "..."}
+if sys.platform=='darwin':
+    with open('/Users/newberry/Desktop/atlas_data/datajoint_db_credentials.json') as f:
+        db_admin_creds = json.load(f)
+elif sys.platform=='linux':
+    with open('') as f:
+        db_admin_creds = json.load(f)
+
+# Retrieve client, assuming you have credentials json file, to access S3
+def get_client():
+    return Minio( 's3.amazonaws.com', secure=True, **creds)
+global client
+client = get_client()
 
 
 global brain_names_dic
