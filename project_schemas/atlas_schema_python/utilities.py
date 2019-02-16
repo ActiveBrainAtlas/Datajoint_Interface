@@ -4,31 +4,23 @@ from minio import Minio
 import json
 import sys
 
-# LOAD AWS_S3 & DataBase_Admin Credentials
+
 global creds
 global db_admin_creds
-# Load from Alex Laptop
-if sys.platform=='darwin':
-    cred_root_fp = '/Users/newberry/Desktop/atlas_data/'
-    # load S3 access_key and secret_key
-    with open(cred_root_fp + 'alex_aws_credentials.json') as f:
+
+def load_aws_creds(fp):
+    with open(fp) as f:
         creds = json.load(f)
-    # LOAD DataBase admin Credentials    
-    with open(cred_root_fp + 'datajoint_db_credentials.json') as f:
-        db_admin_creds = json.load(f)
-# Load from Alex Desktop
-elif sys.platform=='linux':
-    cred_root_fp = '/mnt/c/Users/Alex/Documents/json_credentials/'
-    with open(cred_root_fp + 'alex_aws_credentials.json') as f:
-        creds = json.load(f)
-    with open('') as f:
-        db_admin_creds = json.load(f)
+    return creds
+
+def load_dj_creds(fp):
+    with open(fp) as f:
+        dj_creds = json.load(f)
+    return dj_creds
 
 # Retrieve client, assuming you have credentials json file, to access S3
 def get_client():
     return Minio( 's3.amazonaws.com', secure=True, **creds)
-global client
-client = get_client()
 
 
 # Load a dictionary of all brains assiciated with the Active Atlas Project
