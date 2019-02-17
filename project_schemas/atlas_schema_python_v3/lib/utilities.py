@@ -3,10 +3,13 @@ import numpy as np
 from minio import Minio
 import json
 import sys
+import yaml
 
-def get_dj_client( credential_file_pointers='config/credFiles.yaml' ):
+def get_dj_creds( credential_file_pointers='setup/credFiles.yaml' ):
     """
+    Returns Datajoint credentials which are used for initial connection to a database.
     
+    Takes in fp to credential file pointers, defaults to 'setup/credFiles.yaml'.
     """
     credFiles = yaml.load(open( credential_file_pointers,'r'))
     
@@ -15,9 +18,11 @@ def get_dj_client( credential_file_pointers='config/credFiles.yaml' ):
         dj_creds = json.load(f)
     return dj_creds
 
-def get_s3_client( credential_file_pointers='config/credFiles.yaml' ):
+def get_s3_client( credential_file_pointers='setup/credFiles.yaml' ):
     """
+    Return the AWS S3 client which must be passed to every function that accesses it.
     
+    Takes in fp to credential file pointers, defaults to 'setup/credFiles.yaml'.
     """
     credFiles = yaml.load(open( credential_file_pointers,'r'))
     
@@ -29,9 +34,11 @@ def get_s3_client( credential_file_pointers='config/credFiles.yaml' ):
     return Minio( 's3.amazonaws.com', secure=True, **creds)
 
 
-def get_sorted_filenames( stack_name, return_type="string", client ): # string, dictionary, list
+def get_sorted_filenames( s3_client, stack_name, return_type="string" ): # string, dictionary, list
     """
+    Pass in the stack_name and s3_client loaded from 'get_s3_client()'. Accesses S3 and returns the 'sorted_filenames.txt' file, which is the master list of all slices in a stack.
     
+    Third argument is 'return_type', which can be a string, dictionary, or list. Defaults to string with '|' as a seperator.
     """
     client = get_s3_client()
     sorted_filenames = client.get_object('mousebrainatlas-data', 'CSHL_data_processed/'+stack_name+\
@@ -77,7 +84,10 @@ def get_sorted_filenames( stack_name, return_type="string", client ): # string, 
 
     return [sorted_fn_data, total_slices, valid_slices]
 
-def s3_dir_is_empty( bucket_name, filepath, client):
+def s3_dir_is_empty( s3_client, bucket_name, filepath ):
+    """
+    Pass in the s3_client, bucket_name, and filepath. This function will return False if there are no files present, True if there are.
+    """
     objects = client.list_objects(bucket_name=bucket_name, \
                                 prefix=filepath)
     
