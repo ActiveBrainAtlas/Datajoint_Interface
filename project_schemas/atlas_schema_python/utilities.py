@@ -5,21 +5,20 @@ import json
 import sys
 
 
-global creds
-global db_admin_creds
-
 def load_aws_creds(fp):
+    global creds
     with open(fp) as f:
         creds = json.load(f)
     return creds
 
 def load_dj_creds(fp):
+    global dj_creds
     with open(fp) as f:
         dj_creds = json.load(f)
     return dj_creds
 
 # Retrieve client, assuming you have credentials json file, to access S3
-def get_client():
+def get_client( ):
     return Minio( 's3.amazonaws.com', secure=True, **creds)
 
 
@@ -136,16 +135,17 @@ def get_processed_files( stack, prep_id="2", version="", resol="thumbnail", retu
     return fp_data
 
 
-def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionary, list
+def get_sorted_filenames( stack_name, return_type="string" ): # string, dictionary, list
+    client = get_client()
     sorted_filenames = client.get_object('mousebrainatlas-data', 'CSHL_data_processed/'+stack_name+\
                                          '/'+stack_name+'_sorted_filenames.txt').data.decode()
     separator = "|"
 
-    if returntype=="string":
+    if return_type=="string":
         sorted_fn_data = ""
-    elif returntype=="dictionary":
+    elif return_type=="dictionary":
         sorted_fn_data = {}
-    elif returntype=="list":
+    elif return_type=="list":
         sorted_fn_data = []
 
 
@@ -171,11 +171,22 @@ def get_sorted_filenames( stack_name, returntype="string" ): # string, dictionar
                      valid_slices += 1
 
 
-        if returntype=="string":
+        if return_type=="string":
             sorted_fn_data = sorted_fn_data + line + separator
-        elif returntype=="dictionary":
+        elif return_type=="dictionary":
             sorted_fn_data[ slice_number ] = slice_name
-        elif returntype=="list":
+        elif return_type=="list":
             sorted_fn_data.append( str(line) )
 
     return [sorted_fn_data, total_slices, valid_slices]
+
+def s3_dir_is_empty( bucket_name, filepath):
+    client = get_client()
+    objects = client.list_objects(bucket_name=bucket_name, \
+                                prefix=filepath)
+    
+    objects_exist = False
+    for object in objects:
+            objects_exist = True
+            break
+    return not objects_exist
