@@ -1,4 +1,5 @@
 *.json
 *.yaml
 
-*.ipynb_checktopints/*
+*.ipynb_checkpoints/*
+*VirtEnv/*
