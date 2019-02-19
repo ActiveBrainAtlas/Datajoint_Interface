@@ -72,7 +72,7 @@ def get_sorted_filenames( s3_client, stack_name, return_type="string" ): # strin
         slice_name = slice_name.replace(" ", "")
         slice_number = slice_number.replace(" ", "")
         if slice_name != 'Placeholder':
-                     valid_slices += 1
+            valid_slices += 1
 
 
         if return_type=="string":

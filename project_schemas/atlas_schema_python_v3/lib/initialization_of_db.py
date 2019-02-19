@@ -35,16 +35,15 @@ brain_names_dic = {'MD585':['thionin','CSHL',True,'sagittal'],
 brain_names_list = brain_names_dic.keys()
 
 
-def get_raw_files( stack, returntype="string" ):
+def get_raw_files( s3_client, stack, returntype="string" ):
     # Raw files located: mousebrainatlas-rawdata/CSHL_data/[stack]/
-    client = get_client()
     bucket_name='mousebrainatlas-rawdata'
     if 'UCSD' in stack:
         rel_fp = 'UCSD_data/'+stack+'/'
     else: 
         rel_fp = 'CSHL_data/'+stack+'/'
     # 'Objects' contains information on every item in the specified path
-    objects = client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
+    objects = s3_client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
     
     if returntype=="string":
         fp_data = ""
@@ -66,7 +65,7 @@ def get_raw_files( stack, returntype="string" ):
 
     return fp_data
 
-def get_processed_files( stack, prep_id="2", version="", resol="thumbnail", returntype="string" ):
+def get_processed_files( s3_client, stack, prep_id="2", version="", resol="thumbnail", returntype="string" ):
     # prep_id only used as a string
     prep_id = str(prep_id)
     # add the underscore prefix if does not currently exist
@@ -74,12 +73,11 @@ def get_processed_files( stack, prep_id="2", version="", resol="thumbnail", retu
         version = "_"+version
     
     
-    client = get_client()
     # CHANGE TO ENV VARIABLE * * * * * * * * * * * * 
     bucket_name='mousebrainatlas-data'
     rel_fp = 'CSHL_data_processed/'+stack+'/'+stack+'_prep'+prep_id+'_'+resol+'/'
     # 'Objects' contains information on every item in the specified path
-    objects = client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
+    objects = s3_client.list_objects(bucket_name=bucket_name, prefix=rel_fp)
     
     if returntype=="string":
         fp_data = ""
@@ -102,7 +100,7 @@ def get_processed_files( stack, prep_id="2", version="", resol="thumbnail", retu
             
     # If no valid could be found, then try using "lossless" instead of "raw"
     if (fp_data=="" or fp_data==[]) and resol=="raw":
-        fp_data = get_processed_files( stack, prep_id=prep_id, version=version, \
+        fp_data = get_processed_files( s3_client, stack, prep_id=prep_id, version=version, \
                                       resol="lossless", returntype=returntype )
     
     return fp_data
