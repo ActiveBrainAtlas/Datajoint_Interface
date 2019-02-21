@@ -16,6 +16,6 @@ The setup assumes you are in the `Datajoint_Interface/project_schemas/atlas_sche
 ---
 ## Manually making the yaml file
 
-1) If the user prefers, the "step 1)" can be replaced with manually creating the yaml file with the following fields as follows:
+1) If the user prefers, the "step 1)" can be replaced with manually creating the yaml file with the following fields:
     - `ENV_DIR : <path to github repo>`
     - `DWNLD_ROOT_DIR : <path to where S3 files download to>`
