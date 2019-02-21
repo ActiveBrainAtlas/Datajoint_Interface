@@ -1,6 +1,6 @@
 *.json
 *.yaml
 
-*.ipynb_checkpoints/*
-*VirtEnv/*
+.ipynb_checkpoints/
+VirtEnv/
 *.pyc
