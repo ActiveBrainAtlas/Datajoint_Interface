@@ -48,9 +48,9 @@ script_dir=script_dir[:index_of_fn]
 index_of_last_folder = script_dir.rfind('/')
 env_dir = script_dir[:index_of_last_folder+1]
 
-print()
-print( env_dir )
-print( download_dir)
+print('')
+print( 'Atlas ENV_DIR: ',env_dir )
+print( 'default DWNLD_ROOT_DIR: ',download_dir)
 
 with open(conf_dir+'/filepaths.yaml', 'w' ) as file:
     file.write(line_1+env_dir+'\n')
