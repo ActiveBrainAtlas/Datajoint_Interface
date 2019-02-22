@@ -3,7 +3,7 @@
 ##################################################
 ## LOADING ENVIRONMENT VARIABLES FROM YAML FILE ##
 # Load contents of yaml file into a string
-file=`cat ../../../.setup_files/filepaths.yaml`
+file=`cat ~/.orofacial/filepaths.yaml`
 contents=`echo $file`
 
 # Defining some strings that need to be replaced in the file contents of the yaml file
@@ -47,9 +47,9 @@ NC='\033[0m' # No Color
 ##################################################
 
 if [ ! -d $virtualenvdir ]; then
-	echo ""
-	echo -e "${red}Creating a virtual environment${NC}"
-	virtualenv -p python3 $ENV_DIR/$virtualenvdir
+    echo ""
+    echo -e "${red}Creating a virtual environment${NC}"
+    virtualenv -p python3 $ENV_DIR/$virtualenvdir
 fi
 
 source $ENV_DIR/$virtualenvdir/bin/activate
