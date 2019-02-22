@@ -1,5 +1,8 @@
 from sys import version_info
 
+from os import mkdir
+from os.path import isdir,isfile,expanduser
+
 py3 = version_info[0] > 2 #creates boolean value for test that Python major version > 2
 
 line_1 = 'ENV_DIR : '
@@ -30,6 +33,12 @@ print()
 print( env_dir)
 print( download_dir)
 
-with open('../../../.setup_files/filepaths.yaml', 'w' ) as file:
+home = expanduser('~')
+conf_dir=home+'/.orofacial'
+
+if not isdir(conf_dir):
+    mkdir(conf_dir)
+
+with open(conf_dir+'/filepaths.yaml', 'w' ) as file:
     file.write(line_1+env_dir+'\n')
     file.write(line_2+env_dir)
