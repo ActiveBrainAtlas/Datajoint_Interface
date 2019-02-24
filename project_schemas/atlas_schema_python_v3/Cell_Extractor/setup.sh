@@ -1,0 +1,1 @@
+export yaml='/Users/yoavfreund/projects/Datajoint_Interface/project_schemas/atlas_schema_python_v3/Cell_Extractor/Cell_Extraction_Scripts/shape_params.yaml'

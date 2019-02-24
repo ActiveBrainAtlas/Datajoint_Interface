@@ -17,7 +17,7 @@ sys.path.append('./Cell_Extraction_Scripts/')
 from process_file import process_file
 from lib.utils import *
 
-yaml='/Users/yoavfreund/projects/Datajoint_Interface/project_schemas/atlas_schema_python_v3/Cell_Extractor/Cell_Extraction_Scripts/shape_params.yaml'
+yaml=os.environ['yaml']
 config = configuration(yaml)
 params=config.getParams()
 
