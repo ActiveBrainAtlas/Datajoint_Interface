@@ -57,18 +57,19 @@ class ExtractedCells(dj.Computed):
                 key['patches_fn']=patches_fn
                 key['extracted_fn']=extracted_fn
                 key['extracted_size']=int(extracted_size/1000000)
-
+# could not insert key= {'extracted_size': 56, 'slice_num': 10, 'extracted_fn': 'MD585-IHC4-2015.07.18-07.01.12_MD585_1_0010_lossless_extracted.tgz', 'mouse': 'MD585', 'patches_fn': 'MD585-IHC4-2015.07.18-07.01.12_MD585_1_0010_lossless_patches.tgz'
             except Exception:
                 traceback.print_exc(file=sys.stderr)
 
             print('Trying to insert key=',key)
             try:
                 self.insert1(key)
-            except:
+            except Exception:
                 print('could not insert key=',key)
+                traceback.print_exc(file=sys.stderr)
 
     
 extraction=ExtractedCells()
-extraction.make({'mouse': 'MD585', 'slice_num': 10})
-#extraction.populate(dict(mouse='MD585'))
+#extraction.make({'mouse': 'MD585', 'slice_num': 10})
+extraction.populate(dict(mouse='MD585'))
 
