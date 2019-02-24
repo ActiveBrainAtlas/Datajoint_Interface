@@ -71,5 +71,5 @@ class ExtractedCells(dj.Computed):
     
 extraction=ExtractedCells()
 #extraction.make({'mouse': 'MD585', 'slice_num': 10})
-extraction.populate(dict(mouse='MD585'))
+extraction.populate()
 
