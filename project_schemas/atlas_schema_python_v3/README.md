@@ -21,7 +21,7 @@ The setup assumes you are in the `Datajoint_Interface/project_schemas/atlas_sche
     
 ---
 
-# Cloud File Organization
+# AWS File Organization
 Data for the atlas project is consolidated on AWS S3 on several buckets. Descriptions of the relevant buckets as well as a brief description of the organizational structure for retrievable image files is below.
 
 - `Mousebrainatlas-data`: Contains data created at every step of the image-processing pipeline. Contains several copies of any given brain stack at intermediate stages of the processesing. Current schema allows retrieval of _Processed Images_, which are the fully processed slices cropped to only span the brainstem region ("prep2" appended to filename).
