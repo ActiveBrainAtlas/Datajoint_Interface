@@ -1,4 +1,4 @@
-# Setup
+# Accessing the Database. Setup
 The setup assumes you are in the `Datajoint_Interface/project_schemas/atlas_schema_python_v3/` folder in the terminal.
 
 1) Run `python setup/define_filepaths.py`
