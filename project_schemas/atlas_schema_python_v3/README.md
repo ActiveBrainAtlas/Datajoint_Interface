@@ -27,3 +27,5 @@ Data for the atlas project is consolidated on AWS S3 on several buckets. Descrip
 - `Mousebrainatlas-data`: Contains data created at every step of the image-processing pipeline. Contains several copies of any given brain stack at intermediate stages of the processesing. Current schema allows retrieval of _Processed Images_, which are the fully processed slices cropped to only span the brainstem region ("prep2" appended to filename).
 - `Mousebrainatlas-rawdata`: Contains all raw data on every brain used in the atlas pipeline. These are in `.jp2` format and are located in folders matching the stack name. This bucket is purely kept in glacier format, a permanent storage option that requires several days to retrieve data.
 - `Mousebrainatlas-rawdata-backup`: An exact copy of `Mousebrainatlas-rawdata` but the data is stored using standard storage, making it freely available.
+
+A more in depth description can be found in the [MouseBrainAtlas_dev File organization document](https://github.com/ActiveBrainAtlas/MouseBrainAtlas_dev/blob/master/doc/server_info/S3_file_organization.md).
