@@ -1,5 +1,8 @@
 %GUI for handling new sessions directly from scanimage. Assumes the
-%conrad_test schema is located in a package called +ctest.
+%conrad_test schema is located in a package called +ctest. (current login
+%is conrad/the usual lab password.
+
+%TODO: Add new session functionality within this GUI.
 classdef simouseGUI < handle
     properties
         gui
@@ -15,7 +18,7 @@ classdef simouseGUI < handle
             obj.gui.mouselist.Enable = 'off';
             
             obj.gui.sessiontitle = uicontrol('Style','text','Position',[10,445,157,25],'String','Sessions');
-            obj.gui.sessionlist = uicontrol('Style','listbox','Position',[10,250,157,200],'Callback',{@obj.loadsession});
+            obj.gui.sessionlist = uicontrol('Style','listbox','Position',[10,250,157,200],'Callback',{@obj.loadsession},'String',{'New session...'});
             
             obj.gui.mdata.connect = uimenu(obj.gui.f,'Label','Connect...','Callback',{@obj.login});
             obj.gui.mdata.export = uimenu(obj.gui.f,'Label','Export...','Callback',{@obj.export});
@@ -26,11 +29,6 @@ classdef simouseGUI < handle
             obj.gui.notetitle = uicontrol('Style','text','String','Session Notes','Position',[10,210,315,25]);
             
             obj.gui.yoke = uicontrol('Style','checkbox','String','Sync to Scanimage','Position',[187,370,157,25],'Callback',{@obj.synctoggle});
-            if nargin > 0
-                obj.data.hFB = varargin{1};
-            else
-                obj.gui.yoke.Enable = 'off';
-            end
             
             obj.gui.stype = uicontrol('Style','popupmenu','String',{'Naive','Day 1','Day 2','Post'},'Position',[187,300,140,25]);
             obj.gui.stype.Enable = 'off';
@@ -38,6 +36,15 @@ classdef simouseGUI < handle
             obj.data.tmap = containers.Map();
             obj.data.tmap('naive') = 1; obj.data.tmap('fbd1') = 2; obj.data.tmap('fbd2') = 3; obj.data.tmap('post') = 4;
             obj.data.isNewSession = 0;
+            
+            if nargin > 0
+                obj.data.hFB = varargin{1};
+                obj.gui.yoke.Enable = 'on';
+            else
+                obj.gui.yoke.Enable = 'off';
+            end
+            
+            obj.data.isConnected = 0;
         end
         
         function login(obj,src,evt)
@@ -46,13 +53,20 @@ classdef simouseGUI < handle
             setenv('DJ_USER',user);
             setenv('DJ_PASS',pw);
             
-            dj.conn();
+            %dj.conn('ucsd-demo-db.datajoint.io',user,pw);
+            try
+                dj.conn();
             
-            obj.data.mice = fetch(ctest.Mouse);
-            obj.data.mice = {obj.data.mice.mouse_id};
+                obj.data.mice = fetch(ctest.Mouse);
+                obj.data.mice = {obj.data.mice.mouse_id};
+                obj.data.isConnected = 1;
             
-            obj.gui.mouselist.String = [obj.gui.mouselist.String,obj.data.mice];
-            obj.gui.mouselist.Enable = 'on';
+                obj.gui.mouselist.String = [obj.gui.mouselist.String,obj.data.mice];
+                obj.gui.mouselist.Enable = 'on';
+            catch
+                warning('Invalid login credentials.');
+                obj.data.isConnected = 0;
+            end
         end
         
         function selectmouse(obj,src,evt)
@@ -64,7 +78,7 @@ classdef simouseGUI < handle
                 mouse.mouse_id = mname{1};
                 try
                     d = datetime(mname{2},'InputFormat','yyyy-MM-dd');
-                    mouse.dob = mname{2};
+                    mouse.dob = string(d);
                     mouse.iacuc_barcode = 0;
                     insert(ctest.Mouse,mouse);
                     obj.gui.mouselist.String = [obj.gui.mouselist.String,mname{1}];
@@ -79,9 +93,11 @@ classdef simouseGUI < handle
                 for i = 1:length(sessions)
                     slist{i} = num2str(sessions(i).session);
                 end
+                slist{length(sessions)+1} = 'New session...';
                 
                 obj.gui.sessionlist.String = slist;
                 obj.gui.sessionlist.Max = length(slist);
+                obj.gui.sessionlist.Value = 1;
                 
                 obj.gui.notebox.String = '';
             end
@@ -91,19 +107,32 @@ classdef simouseGUI < handle
         
         function loadsession(obj,src,evt)
             if ~isempty(obj.gui.sessionlist.Value)
-                sessioncondition = ['session = ' obj.gui.sessionlist.String{obj.gui.sessionlist.Value(1)}];
-                for i = 2:length(obj.gui.sessionlist.Value)
-                    sessioncondition = [sessioncondition '|| session = ' obj.gui.sessionlist.String{obj.gui.sessionlist.Value(i)}];
+                if ~ismember(obj.gui.sessionlist.Value, obj.gui.sessionlist.Max)
+                    sessioncondition = ['session = ' obj.gui.sessionlist.String{obj.gui.sessionlist.Value(1)}];
+                    for i = 2:length(obj.gui.sessionlist.Value)
+                        sessioncondition = [sessioncondition '|| session = ' obj.gui.sessionlist.String{obj.gui.sessionlist.Value(i)}];
+                    end
+                    r = ctest.Session & strcat('mouse_id = "',obj.data.mid,'"');
+                    obj.data.session = fetch(r & sessioncondition,'*');
+                    if length(obj.data.session) < 2
+                        obj.gui.notebox.String = obj.data.session.notes;
+                        obj.gui.notebox.Enable = 'inactive';
+                        obj.gui.stype.Value = obj.data.tmap(obj.data.session.type);
+                        obj.gui.stype.Enable = 'inactive';
+                    end
+                    
+                    obj.data.isNewSession = 0;
+                    obj.gui.mdata.export.Enable = 'on';
+                else
+                    obj.gui.mdata.export.Enable = 'off';
+                    obj.data.isNewSession = 1;
+                    
+                    obj.gui.notebox.Enable = 'on';
+                    obj.gui.stype.Enable = 'on';
+                    
+                    obj.gui.notebox.String = '';
+                    obj.gui.stype.Value = 1;
                 end
-                obj.data.session = fetch(ctest.Session & ['mouse_id = "' obj.data.mid '"'] & sessioncondition,'notes','*');
-                if length(obj.data.session) < 2
-                    obj.gui.notebox.String = obj.data.session.notes;
-                    obj.gui.notebox.Enable = 'inactive';
-                    obj.gui.stype.Value = obj.data.tmap(obj.data.session.type);
-                    obj.gui.stype.Enable = 'inactive';
-                end
-                
-                obj.gui.mdata.export.Enable = 'on';
             else
                 obj.gui.mdata.export.Enable = 'off';
             end
@@ -124,9 +153,11 @@ classdef simouseGUI < handle
                 sobj(i).img.t = imout(i).t;
                 sobj(i).mat.thresh = imout(i).thresh;
                 
-                sobj(i).lab.t = bout(i).t(:);
-                sobj(i).lab.lick = bout(i).lick_freq;
-                sobj(i).lab.vel = bout(i).ang_vel;
+                if ~isempty(bout)
+                    sobj(i).lab.t = bout(i).t(:);
+                    sobj(i).lab.lick = bout(i).lick_freq;
+                    sobj(i).lab.vel = bout(i).ang_vel;
+                end
                 
                 a = diff(sobj(i).mat.thresh);
                 sobj(i).rewidx = find(a > 0);
@@ -136,7 +167,7 @@ classdef simouseGUI < handle
         end
         
         function synctoggle(obj,src,evt)
-            if obj.gui.yoke.Value && obj.gui.yoke.Value ~= obj.data.isNewSession
+            if obj.gui.yoke.Value
                 obj.data.session = [];
 
                 obj.gui.stype.Value = 1;
