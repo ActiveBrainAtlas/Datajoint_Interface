@@ -74,5 +74,5 @@ class ExtractedCells(dj.Computed):
 print('starting to populate')
 extraction=ExtractedCells()
 #extraction.make({'mouse': 'MD585', 'slice_num': 10})
-extraction.populate()
+extraction.populate(reserve_jobs=True)
 

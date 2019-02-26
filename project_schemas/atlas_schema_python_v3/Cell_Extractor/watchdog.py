@@ -65,6 +65,7 @@ if __name__=='__main__':
         else:
             command='python3 {0}/PopulateExtractedCells.py'.format(exec_dir)
             output='{0}/logs/Controller-{1}.log'.format(exec_dir,int(time()))
+            print('about to run',command,'withoutput=',output)
             run(command,output)
 
             # Controller.py [-h] scripts_dir script s3location local_data
