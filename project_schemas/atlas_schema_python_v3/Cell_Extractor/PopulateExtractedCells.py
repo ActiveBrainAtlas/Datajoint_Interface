@@ -69,7 +69,7 @@ class ExtractedCells(dj.Computed):
             self.insert1(key)
         except Exception:
             print('could not insert key=',key)
-                traceback.print_exc(file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
 
 print('starting to populate')
 extraction=ExtractedCells()
