@@ -3,7 +3,8 @@
 from os.path import isfile,getmtime
 from glob import glob
 from time import sleep,time
-from os import system, environ
+from os import system
+import os
 from subprocess import Popen,PIPE
 import sys
 
