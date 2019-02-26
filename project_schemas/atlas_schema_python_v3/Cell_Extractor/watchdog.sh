@@ -6,4 +6,5 @@ echo $LD_LIBRARY_PATH >> /home/ubuntu/watchdog.log
 source /home/ubuntu/Datajoint_Interface/project_schemas/atlas_schema_python_v3/setup/config.sh
 
 cd /home/ubuntu/Datajoint_Interface/project_schemas/atlas_schema_python_v3/Cell_Extractor
+echo 'starting watchdog.py'
 ./watchdog.py >> /home/ubuntu/watchdog.log

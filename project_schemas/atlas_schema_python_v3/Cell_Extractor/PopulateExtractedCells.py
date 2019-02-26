@@ -13,7 +13,6 @@ from utilities import *
 from initialization_of_db import *
 
 sys.path.append('./Cell_Extraction_Scripts/')
-
 from process_file import process_file
 from lib.utils import *
 
@@ -21,12 +20,13 @@ yaml=os.environ['yaml']
 config = configuration(yaml)
 params=config.getParams()
 
-#print(params)
+print('Populate: yaml=%s'%yaml,', params=',params)
 #sys.exit()
 
 scripts_dir=params['paths']['scripts_dir']
 local_data=params['paths']['data_dir']
 bucket=os.environ['BUCKET_RAWDATA']
+print('Populate: scripts_dir=%s,local_data=%s,bucket=%s'%(scripts_dir,local_data,bucket))
 # Connect to datajoint server
 dj.conn()
 
@@ -71,7 +71,7 @@ class ExtractedCells(dj.Computed):
             print('could not insert key=',key)
             traceback.print_exc(file=sys.stderr)
 
-print('starting to populate')
+print('Populate: starting to populate')
 extraction=ExtractedCells()
 #extraction.make({'mouse': 'MD585', 'slice_num': 10})
 extraction.populate(reserve_jobs=True)

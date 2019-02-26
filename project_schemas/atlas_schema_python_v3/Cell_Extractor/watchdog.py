@@ -9,19 +9,16 @@ import sys
 
 sys.path.append('/home/ubuntu/shapeology_code/scripts')
 
-from lib.utils import configuration
+from lib.utils import *
 
-config = configuration('/home/ubuntu/shapeology_code/scripts/shape_params-aws.yaml')
+config = configuration(os.environ['yaml'])
 params=config.getParams()
 
 scripts_dir=params['paths']['scripts_dir']
 
 local_data=params['paths']['data_dir']
 script='process_file.py'
-#yaml_file = 'shape_params.yaml'
-#stack='s3://mousebraindata-open/MD657'
 exec_dir=params['paths']['exec_dir']
-
 
 def runPipe(command):
     print('cmd=',command)
