@@ -97,50 +97,5 @@ def s3_dir_is_empty( s3_client, bucket_name, filepath ):
             break
     return not objects_exist
 
-def slice_make_function(self, key):
-    stack_info = (Stack()&key).fetch( as_dict=True )[0]
-    stack_name = stack_info["stack_name"]
-        
-    processed_files = get_processed_files( s3_client, \
-                                              stack=stack_name, \
-                                              prep_id="2", \
-                                              version="", \
-                                              resol="raw", \
-                                              returntype="list" )
-    raw_files = get_raw_files( s3_client, \
-                                  stack=stack_name, \
-                                  returntype="list" )
-        
-    # Load the sorted_filenames.txt into a dictionary
-    try:
-        sorted_fns,_,_ = get_sorted_filenames( s3_client, stack_name=stack_name, return_type='dictionary')
-            
-        for slice_num in sorted_fns:
-            key['slice_num'] = slice_num
-            key['slice_name'] = str( sorted_fns[slice_num] )
-            if key['slice_name'] == 'Placeholder':
-                key['valid'] = False
-            else:
-                key['valid'] = True
 
-            # Fill in the RAW and PROCESSED S3 filepaths
-            key['processed_s3_fp'] = ''
-            key['raw_s3_fp'] = ''
-                
-            for fp in processed_files:
-                if key['slice_name'] in fp:
-                    key['processed_s3_fp'] = fp
-                    break
-            for fp in raw_files:
-                if key['slice_name'] in fp:
-                    key['raw_s3_fp'] = fp
-                    break
-
-            self.insert1(key)
-                
-                
-    except Exception as e:
-        print(e)
-            
-    print(stack_name+' finished \n')
 
