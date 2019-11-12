@@ -1,3 +1,7 @@
+# Table Definitions
+
+The starting point of the definitions is in `DataJoint tables 5.txt`. These have to then be translated into the format given in `
+
 # Accessing the Database. Setup
 The setup assumes you are in the `Datajoint_Interface/project_schemas/atlas_schema_python_v3/` folder in the terminal.
 
