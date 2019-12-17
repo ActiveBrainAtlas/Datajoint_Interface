@@ -4,13 +4,15 @@ from minio import Minio
 import json
 import sys
 import yaml
+from pathlib import Path
 
-def get_dj_creds( credential_file_pointers='setup/credFiles.yaml' ):
+def get_dj_creds( credential_file_pointers='./setup/credFiles.yaml' ):
     """
     Returns Datajoint credentials which are used for initial connection to a database.
     
     Takes in fp to credential file pointers, defaults to 'setup/credFiles.yaml'.
     """
+    credential_file_pointers = Path( credential_file_pointers )
     credFiles = yaml.load(open( credential_file_pointers,'r'))
     
     # Load Datajoint Credentials
