@@ -67,6 +67,18 @@ Type details  : varchar(500)
 Titer (particles/ml) : float	# if applicable
 Source ("", Adgene", "Salk", "Penn", "UNC")
 Souce details  : varchar(100)
+Type : ("", "counterstain","FP", "antibody", "organic dye")
+Type_of_counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
+Details_of_label: varchar(200)		# only if not a counterstain
+Tranmission : enum("yes", "no")
+Tranmission wavelength (nm) : int  # for organic counterstain
+Excitation_wavelength (nm) : int   # only if not a counterstain
+Excitation_range (nm) : int        # only if not a counterstain
+Dichroic_cut (nm) : int            # only if not a counterstain
+Emission_wavelength (nm) : int     # only if not a counterstain
+Emission_range (nm) : int          # only if not a counterstain
+Comments : varchar(2001)	         # assessment
+
 
 
 
@@ -90,6 +102,7 @@ Section_thickness (µm) :  tinyint unsigned
 Orientation : enum("coronal", "horizontal", "sagittal", "oblique")
 Oblique_notes : varchar(200)
 Mounting : enum("every section", "2nd", "3rd", "4th", "5ft", "6th")	# used to automatically populate Placeholder
+Counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
 Comments : varchar(2001)		# assessment
 
 
