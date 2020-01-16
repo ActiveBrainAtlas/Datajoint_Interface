@@ -172,7 +172,3 @@ Comments : varchar(2001)		# assessment
 Up to here there is no notion of "Active Atlas"
 
   filepath is a new file type that defines a complete filename; could be varchar(200).
- 
- 
- jjjj
- 
