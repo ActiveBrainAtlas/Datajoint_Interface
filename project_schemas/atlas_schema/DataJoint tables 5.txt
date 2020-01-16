@@ -1,19 +1,19 @@
 DataJoint Schemas
 ==============================================
 Some overall nomenclature
-Neurobiology	CSEse
-Whole brain	Stack
-Section	Slice or Scene
-Full resolution	Lossless or Raw
-Brain region	STR
-Landmark	STR-R; STR-L
+Neurobiology	     CSEse
+Whole brain	       Stack
+Section	           Slice or Scene
+Full resolution	   Lossless or Raw
+Brain region       STR
+Landmark           STR-R; STR-L
 
 SMALL TABLE: One row per brain.
-BIG TABLE: One row per slide or section
+BIG TABLE: One row per slide or per brain section
 
 ========================================================
-Breeding
-Table to be done
+SMALL TABLE: Breeding
+Table to be done by David
 
 SMALL TABLE: Animal
 Prep_ID : varchar(20)	# primary key; assigned here
@@ -57,6 +57,17 @@ Brain_location_AP (mm) : float	# anterior-posterior relative to Bregma
 Date : date
 Goal : varchar(2001)
 Comments : varchar(2001)	# assessment
+
+SMALL TABLE: Virus
+-> Animal
+----------------
+Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "Herpes", "Lenti", "N2C rabies")
+Marker: enum ("", "YFP", "GFP", "RFP", "histo-tag") 
+Type details  : varchar(500)
+Titer (particles/ml) : float	# if applicable
+Source ("", Adgene", "Salk", "Penn", "UNC")
+Souce details  : varchar(100)
+
 
 
 SMALL TABLE: Histology
