@@ -33,6 +33,8 @@ Tracking_number : varchar(100)
 Aliases 1 : varchar(100)	# names given by others
 Aliases 2 : varchar(100)
 Aliases 3 : varchar(100)
+Aliases 4 : varchar(100)
+Aliases 5 : varchar(100)
 Comments : varchar(2001)	# assessment
 
 
@@ -87,13 +89,14 @@ Type : ("", "counterstain","FP", "antibody", "organic dye")
 Type_of_counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
 Details_of_label: varchar(200)		# only if not a counterstain
 Tranmission : enum("yes", "no")
-Tranmission wavelength (nm) : int
-Excitation_wavelength (nm) : int
-Excitation_range (nm) : int
-Dichroic_cut (nm) : int
-Emission_wavelength (nm) : int
-Emission_range (nm) : int
-Comments : varchar(2001)		# assessment
+Tranmission wavelength (nm) : int  # for organic counterstain
+Excitation_wavelength (nm) : int   # only if not a counterstain
+Excitation_range (nm) : int        # only if not a counterstain
+Dichroic_cut (nm) : int            # only if not a counterstain
+Emission_wavelength (nm) : int     # only if not a counterstain
+Emission_range (nm) : int          # only if not a counterstain
+Comments : varchar(2001)	         # assessment
+
 
 
 SMALL TABLE: Scan_run
