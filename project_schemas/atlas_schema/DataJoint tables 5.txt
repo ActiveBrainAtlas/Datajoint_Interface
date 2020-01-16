@@ -76,7 +76,7 @@ Sectioning_method : enum ("", "cryoJane", "cryostat', "vibratome", "optical")
 Section_thickness (µm) :  tinyint unsigned
 Orientation : enum("coronal", "horizontal", "sagittal", "oblique")
 Oblique_notes : varchar(200)
-Mounting : enum("every section", "2nd", "3rd", "4th")	# used to automatically populate Placeholder
+Mounting : enum("every section", "2nd", "3rd", "4th", "5ft", "6th")	# used to automatically populate Placeholder
 Comments : varchar(2001)		# assessment
 
 
