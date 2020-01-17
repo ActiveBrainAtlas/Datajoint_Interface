@@ -116,6 +116,7 @@ Comments : varchar(2001)		# assessment
 
 SMALL TABLE: Scan_run
 Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
+-> Sagittal4
 ----------------
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
 -> Animal				# multiple rows for Animal IDs, one for each ID
@@ -129,37 +130,28 @@ Channels_per_slide : enum(1, 2, 3, 4)
 Comments : varchar(2001)		# assessment
 
 
-BIG_TABLE: Slides (prior to segregation of animals and scenes on each slide)
+BIG_TABLE: Sagittal4 # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
 -> Scan run
-Slide ID : int #primary key; one per slide; assigned here; integer)
+Slide Physical ID : int #primary key; one per slide; assigned here; integer)
 ----------------
-Brains_per_slide : enum(1, 2, 3, 4)
-Scenes_per _slide : enum(1, 2, 3, 4, 5 6, 7, 8, 9, 10, 11, 12)	# maximum number
-Scene_schema : varchar(200)		# from left to right, top to bottom. Example [[2,1],[4,3]]
-Path : filepath (200)			# Examples: ".\...name1"_"name2"_..._"slide number"_"date".CZI 
-and ".\...ScanID"_"Slide_ID".CZI)
-Comments : varchar(2001)		# assessment
-
-
-BIG_TABLE: Section              # pack from Preprocessing Stage with fully processed, i.e., co-alighned and normalized, sections
--> Animal
-Section number : int            # This can be reverse ordered for "flipped" directions of cutting. 
-----------------
--> Slides
-Scene number : int              #This ordered is manually entered.
-Path : filepath(200)            # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number"tif, "Animal ID"_"ScanID"_"slide number"_"Section number".tif;
-Placeholder : enum("Y", "N")		# used for a missing section
-Comments : varchar(2001)        # assessment
+Scene QC 1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Missing / Bad counterstain are ignored and include folds, dirt over sample 
+Scene QC 2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain")
+Scene QC 3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") 
+Scene QC 4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Minng bad are ignored and include folds, dirt over sample 
+Path : filepath(200)            # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number"tif, "Animal ID"_"ScanID"_"slide number"_"Section number".tif;Comments : varchar(2001)		# assessment
 
 
 BIG TABLE: Channels	# pack from Preprocessing Stage
 -> Section 
+-> Sagittal
 Channel_number : enum(1, 2, 3, 4) 
 ----------------
 -> Label
 Path : filepath(200)			# proposed "Animal ID"_"Section number"_"channel".tiff) post extraction by preprocessing
 Comments : varchar(2001)		# assessment
 
+
+STOP HERE - THIS INVOLVES PROCESSING
 
 BIG TABLE: Contours
 -> Section
