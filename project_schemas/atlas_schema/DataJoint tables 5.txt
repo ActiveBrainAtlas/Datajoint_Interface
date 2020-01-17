@@ -166,7 +166,10 @@ Channel_4_Path :  filepath(200)            # example: name1_name2_..._"slide num
 Comments : varchar(2001)		    # assessment
 
 
-****STOP HERE - MORE TO FOLLOW SOON****
+****STOP HERE - MORE TO FOLLOW SOON**** 
+
+We are now past the conversions and up to countouring and alighnment and viewing as a 3-D statck
+
 
 
 BIG_TABLE: S       # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
@@ -175,7 +178,6 @@ BIG_TABLE: S       # Cut scheme with 4 sections/slide prior to segregation of an
 Comments : varchar(2001)		    # assessment
 
   # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number", CZI, "Animal ID"_"ScanID"_"slide number"_"Section number".tif; AND CZI
-
 
 
 BIG TABLE: Channels	# pack from Preprocessing Stage
@@ -187,8 +189,6 @@ Channel_number : enum(1, 2, 3, 4)
 Path : filepath(200)			# proposed "Animal ID"_"Section number"_"channel".tiff) post extraction by preprocessing
 Comments : varchar(2001)		# assessment
 
-
-STOP HERE - THIS INVOLVES PROCESSING
 
 BIG TABLE: Contours
 -> Section
