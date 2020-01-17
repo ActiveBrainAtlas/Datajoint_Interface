@@ -41,15 +41,12 @@ Comments : varchar(2001)	# assessment
 SMALL TABLE: Injection
 -> Animal
 ----------------
+-> Virus
+-> Dye
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")
 Anesthesia : enum("", "ketamine", "isoflurane")
-Virus : varchar(100)	# example 'G-pseudo-typed lenti-cre'; multiple rows for Virus, one for each agent
-Dye : varchar(100)
 Method : enum ("", "iontophoresis", "pressure", "volume")
 Pipet : enum ("", "glass", "metal")
-Concentration (units) : float	# if applicable
-Titer (particles/ml) : float	# if applicable
-Concentration (mg/ml) : float	# if applicable
 Location: varchar (20)	# examples: muscle, brain region
 Brain_location_DV (mm): float	# dorsal-ventral relative to Bregma
 Brain_location_ML (mm): float	# medial-lateral relative to Bregma; check if positive
@@ -58,34 +55,45 @@ Date : date
 Goal : varchar(2001)
 Comments : varchar(2001)	# assessment
 
+
 SMALL TABLE: Virus
 -> Animal
 ----------------
-Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "Herpes", "Lenti", "N2C rabies")
-Marker: enum ("", "YFP", "GFP", "RFP", "histo-tag") 
+Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
 Type details  : varchar(500)
 Titer (particles/ml) : float	# if applicable
-Source ("", Adgene", "Salk", "Penn", "UNC")
+Label: enum ("", "YFP", "GFP", "RFP", "histo-tag") 
+Label: varchar(200)
+Excitation_wavelength (nm) : int   # if applicable 
+Excitation_range (nm) : int        # if applicable
+Dichroic_cut (nm) : int            # if applicable
+Emission_wavelength (nm) : int     # if applicable
+Emission_range (nm) : int          # if applicable
+Source ("", "Adgene", "Salk", "Penn", "UNC")
 Souce details  : varchar(100)
-Type : ("", "counterstain","FP", "antibody", "organic dye")
-Type_of_counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
-Details_of_label: varchar(200)		# only if not a counterstain
-Tranmission : enum("yes", "no")
-Tranmission wavelength (nm) : int  # for organic counterstain
-Excitation_wavelength (nm) : int   # only if not a counterstain
-Excitation_range (nm) : int        # only if not a counterstain
-Dichroic_cut (nm) : int            # only if not a counterstain
-Emission_wavelength (nm) : int     # only if not a counterstain
-Emission_range (nm) : int          # only if not a counterstain
 Comments : varchar(2001)	         # assessment
 
 
+SMALL TABLE: Organic Dye
+-> Animal
+----------------
+Type: enum ("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+Type details  : varchar(500)
+Concentration (µM) : float	# if applicable
+Excitation_wavelength (nm) : int
+Excitation_range (nm) : int
+Dichroic_cut (nm) : int
+Emission_wavelength (nm) : int
+Emission_range (nm) :
+Source ("",  "Invitrogen", "Sigma", "Thermo-Fosher")
+Souce details  : varchar(100)
+Comments : varchar(2001)	         # assessment
 
 
 SMALL TABLE: Histology
 -> Animal
 ----------------
--> Label
+-> Virus
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Injection
 Anesthesia : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
 Perfusion age in days : tinyint unsigned
@@ -104,23 +112,6 @@ Oblique_notes : varchar(200)
 Mounting : enum("every section", "2nd", "3rd", "4th", "5ft", "6th")	# used to automatically populate Placeholder
 Counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
 Comments : varchar(2001)		# assessment
-
-
-SMALL TABLE: Label
-Label_ID 
-----------------------
-Type : ("", "counterstain","FP", "antibody", "organic dye")
-Type_of_counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41")	# NtB = Neurotrace blue; NtFR = Neurotrace far red
-Details_of_label: varchar(200)		# only if not a counterstain
-Tranmission : enum("yes", "no")
-Tranmission wavelength (nm) : int  # for organic counterstain
-Excitation_wavelength (nm) : int   # only if not a counterstain
-Excitation_range (nm) : int        # only if not a counterstain
-Dichroic_cut (nm) : int            # only if not a counterstain
-Emission_wavelength (nm) : int     # only if not a counterstain
-Emission_range (nm) : int          # only if not a counterstain
-Comments : varchar(2001)	         # assessment
-
 
 
 SMALL TABLE: Scan_run
