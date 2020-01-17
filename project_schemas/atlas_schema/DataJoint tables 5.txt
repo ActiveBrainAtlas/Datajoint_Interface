@@ -10,10 +10,12 @@ Landmark           STR-R; STR-L
 
 SMALL TABLE: One row per brain.
 BIG TABLE: One row per slide or per brain section
-
 ========================================================
+
 SMALL TABLE: Breeding
-Table to be done by David
+Table to be done by David and Thomas
+
+****START HERE****
 
 SMALL TABLE: Animal
 Prep_ID : varchar(20)	# primary key; assigned here
@@ -57,7 +59,7 @@ Comments : varchar(2001)	# assessment
 
 
 SMALL TABLE: Virus
--> Animal
+-> Virus ID
 ----------------
 Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
 Type details  : varchar(500)
@@ -67,17 +69,16 @@ Label: varchar(200)
 Excitation_wavelength (nm) : int   # if applicable 
 Excitation_range (nm) : int        # if applicable
 Dichroic_cut (nm) : int            # if applicable
-Emission_wavelength (nm) : int     # if applicable
-Emission_range (nm) : int          # if applicable
 Source ("", "Adgene", "Salk", "Penn", "UNC")
 Souce details  : varchar(100)
 Comments : varchar(2001)	         # assessment
 
 
-SMALL TABLE: Organic Dye
--> Animal
+SMALL TABLE: Organic_Label
+-> Label ID
 ----------------
 Type: enum ("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+Type: Tracer ("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO", )
 Type details  : varchar(500)
 Concentration (µM) : float	# if applicable
 Excitation_wavelength (nm) : int
@@ -85,7 +86,9 @@ Excitation_range (nm) : int
 Dichroic_cut (nm) : int
 Emission_wavelength (nm) : int
 Emission_range (nm) :
-Source ("",  "Invitrogen", "Sigma", "Thermo-Fosher")
+Source ("",  "Invitrogen", "Sigma", "Thermo-Fisher")
+Souce details  : varchar(100)
+Comments : varchar(2001)	         # assessment
 Souce details  : varchar(100)
 Comments : varchar(2001)	         # assessment
 
@@ -94,16 +97,18 @@ SMALL TABLE: Histology
 -> Animal
 ----------------
 -> Virus
+-> Organic Label
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Injection
 Anesthesia : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
-Perfusion age in days : tinyint unsigned
-Perfusion  date: date
-Perfusion method: enum("", "standard", "special")		# standard is DK laboratory SOPXX
+Perfusion_age in days : tinyint unsigned
+Perfusion_date: date TO CHANGE
+Exsangination_method: enum: ("", "PBS", "aCSF", "Ringers")
+Fixative method: enum("", "Para", "Glut", "Post fix") 
 Special_perfusion_notes : varchar(200)
-Post fixation period (days) : tinyint unsigned
+Post_fixation_period (days) : tinyint unsigned
 Whole-brain : enum("Y", "N")
 Block : varchar(200)			# if applicable
-Date_frozen : date			# if applicable
+Date_frozen : date			   # if applicable
 Date_sectioned : date
 Sectioning_method : enum ("", "cryoJane", "cryostat', "vibratome", "optical")
 Section_thickness (µm) :  tinyint unsigned
@@ -116,29 +121,61 @@ Comments : varchar(2001)		# assessment
 
 SMALL TABLE: Scan_run
 Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
--> Scenes4
+-> Animal				# currently assumes tissue from a single animals on each slide
 ----------------
+-> Slides
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
--> Animal				# multiple rows for Animal IDs, one for each ID
 Machine : enum("", "Zeiss", "Axioscan", "Nanozoomer")
 Objective : enum("60X", "40X", "20X", "10X")
 Resolution (µm): float			# lateral resolution if available
 Number_of_slides : int
 Date: date
 File_type : enum("CZI", "JPEG2000", "NDPI", "NGR")
+Section_Scmema : enum("L to R", "R to L") # agreement is one row
 Channels_per_slide : enum(1, 2, 3, 4)
 Comments : varchar(2001)		# assessment
 
 
-BIG_TABLE: Scenes4 # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
--> Scan run
+BIG_TABLE: Slides       #  this is the replacement for the "scene file"
 Slide Physical ID : int #primary key; one per slide; assigned here; integer)
+-> Scan_run
+-> Animal
 ----------------
-Scene QC 1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Missing / Bad counterstain are ignored and include folds, dirt over sample 
-Scene QC 2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain")
-Scene QC 3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") 
-Scene QC 4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Minng bad are ignored and include folds, dirt over sample 
-Path : filepath(200)            # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number"tif, "Animal ID"_"ScanID"_"slide number"_"Section number".tif;Comments : varchar(2001)		# assessment
+Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Missing / Bad counterstain are ignored and include folds, dirt over sample 
+Scene_QC_2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain")
+Scene_QC_3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
+Scene_QC_4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
+Scene_QC_5 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
+Scene_QC_6 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
+Path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
+Comments : varchar(2001)		    # assessment
+
+
+BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file"
+Slide Physical ID : int #primary key; one per slide; assigned here; integer)
+-> Scan_run
+-> Animal
+----------------
+Section : int
+Section_QC : enum("OK","Missing", "Replace") # This is the replacement foe the "text file"
+Channel_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff
+Channel_2_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_2.tiff
+Channel_3_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_3.tiff
+Channel_4_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_4.tiff
+    #Sequence example: name1_"date"_C00.tiff; name1_"date"_C15.tiff; name1_"date"_C30.tiff; ...;name1_"date"_C75.tiff; 
+Comments : varchar(2001)		    # assessment
+
+
+****STOP HERE - MORE TO FOLLOW SOON****
+
+
+BIG_TABLE: S       # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
+-> Slides : int #primary key; one per slide; assigned here; integer)
+----------------
+Comments : varchar(2001)		    # assessment
+
+  # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number", CZI, "Animal ID"_"ScanID"_"slide number"_"Section number".tif; AND CZI
+
 
 
 BIG TABLE: Channels	# pack from Preprocessing Stage
