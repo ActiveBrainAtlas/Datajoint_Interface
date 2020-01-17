@@ -116,7 +116,7 @@ Comments : varchar(2001)		# assessment
 
 SMALL TABLE: Scan_run
 Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
--> Sagittal4
+-> Scenes4
 ----------------
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
 -> Animal				# multiple rows for Animal IDs, one for each ID
@@ -130,7 +130,7 @@ Channels_per_slide : enum(1, 2, 3, 4)
 Comments : varchar(2001)		# assessment
 
 
-BIG_TABLE: Sagittal4 # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
+BIG_TABLE: Scenes4 # Cut scheme with 4 sections/slide prior to segregation of animals and scenes on each slide)
 -> Scan run
 Slide Physical ID : int #primary key; one per slide; assigned here; integer)
 ----------------
