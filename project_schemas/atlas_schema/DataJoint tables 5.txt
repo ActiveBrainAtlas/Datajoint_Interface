@@ -167,7 +167,8 @@ Ch_2_rough_align_Path :  filepath(200)            # example: name1_name2_..._"sl
 Ch_3_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r3.tiff
 Ch_4_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r4.tiff
 Comments : varchar(2001)		    # assessment
-
+# DO WE ADD HISTOGRAM NORMALIZED FILE NAMES?
+# DO WE ADD CONVERTED FILES FOR NEUROGLANCER?
 
 ****STOP HERE - MORE TO FOLLOW SOON**** 
 
