@@ -141,12 +141,12 @@ Slide Physical ID : int #primary key; one per slide; assigned here; integer)
 -> Scan_run
 -> Animal
 ----------------
-Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad counterstain") # Missing / Bad counterstain are ignored and include folds, dirt over sample 
-Scene_QC_2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain")
-Scene_QC_3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
-Scene_QC_4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
-Scene_QC_5 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
-Scene_QC_6 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_counterstain") 
+Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample 
+Scene_QC_2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue")
+Scene_QC_3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_5 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_6 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
 Comments : varchar(2001)		    # assessment
 
