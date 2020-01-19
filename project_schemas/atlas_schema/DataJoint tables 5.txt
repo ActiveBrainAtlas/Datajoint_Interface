@@ -123,7 +123,6 @@ SMALL TABLE: Scan_run
 Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
 -> Animal				# currently assumes tissue from a single animals on each slide
 ----------------
--> Slides
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
 Machine : enum("", "Zeiss", "Axioscan", "Nanozoomer")
 Objective : enum("60X", "40X", "20X", "10X")
