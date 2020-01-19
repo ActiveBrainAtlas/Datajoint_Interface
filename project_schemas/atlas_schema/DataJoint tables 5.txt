@@ -136,33 +136,59 @@ Comments : varchar(2001)		# assessment
 
 
 BIG_TABLE: Slides       #  this is the replacement for the "scene file"
-Slide Physical ID : int #primary key; one per slide; assigned here; integer)
+Slide_Physical ID : int #primary key; one per slide; assigned here; integer)
 -> Scan_run
 -> Animal
+Rescan_number : enum("","1", "2", "3")
 ----------------
-Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample ;  FIXED 19 Jan
-Scene_QC_2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue")
-Scene_QC_3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_5 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_6 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_1 : enum("","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample ;  FIXED 19 Jan
+Scene_QC_2 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue")
+Scene_QC_3 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_4 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_5 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_6 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
 Comments : varchar(2001)		    # assessment
 
 
 BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file". Further svaes conversions after additonal processing steps that include Orientation, Alignment, Histogram Normalization of counterstain channel (Ch 1), and conversion for use with NeuroGlancer
 -> Scan_run   # FIXED 19 Jan
--> Slides  # ADDED 19 Jan
+-> Slides
 -> Animal
 ----------------
-Section : int
-Section_QC : enum("OK","Missing", "Replace") # This table is the replacement for the "text file"
+Scene_1_Ch_1_Path :  filepath(200)     # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from bioformat coverter
+Scene_1_Ch_2_Path :  filepath(200)
+Scene_1_Ch_3_Path :  filepath(200)
+Scene_1_Ch_4_Path :  filepath(200)
+Scene_2_Ch_1_Path :  filepath(200)
+Scene_2_Ch_2_Path :  filepath(200)
+Scene_2_Ch_3_Path :  filepath(200)
+Scene_2_Ch_4_Path :  filepath(200)
+Scene_3_Ch_1_Path :  filepath(200)
+Scene_3_Ch_2_Path :  filepath(200)
+Scene_3_Ch_3_Path :  filepath(200)
+Scene_3_Ch_4_Path :  filepath(200)
+Scene_4_Ch_1_Path :  filepath(200)
+Scene_4_Ch_2_Path :  filepath(200)
+Scene_4_Ch_3_Path :  filepath(200)
+Scene_4_Ch_4_Path :  filepath(200)
+Scene_5_Ch_1_Path :  filepath(200)
+Scene_5_Ch_2_Path :  filepath(200)
+Scene_5_Ch_3_Path :  filepath(200)
+Scene_5_Ch_4_Path :  filepath(200)
+Scene_6_Ch_1_Path :  filepath(200)
+Scene_6_Ch_2_Path :  filepath(200)
+Scene_6_Ch_3_Path :  filepath(200)
+Scene_6_Ch_4_Path :  filepath(200)
+
+
+
+
+
+Section
+Section_QC : enum("","Missing", "Replace") # This table is the replacement for the "text file"
 Mask_Path :  filepath(200)           # Populate from processing code
-Ch_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from bioformat coverter
-Ch_2_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
-Ch_3_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
-Ch_4_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
-Ch_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after Orinetation and alignment
+h_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after Orinetation and alignment
 Ch_2_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r2.tiff
 Ch_3_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r3.tiff
 Ch_4_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r4.tiff
@@ -172,7 +198,9 @@ Ch_1_NG_Path :  filepath(200)            # example: name1_name2_..._"slide numbe
 Ch_2_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
 Ch_3_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
 Ch_4_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
-#FILES ARE NOW READY FOR CONVERSION TO NEUROGLANCER
+
+
+
 ****STOP HERE - MORE TO FOLLOW SOON**** 
 
 We are now past the conversions and up to countouring and alighnment and viewing as a 3-D statck
