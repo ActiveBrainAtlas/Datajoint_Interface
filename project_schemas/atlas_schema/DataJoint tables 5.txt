@@ -132,7 +132,7 @@ Date: date
 File_type : enum("CZI", "JPEG2000", "NDPI", "NGR")
 Section_Scmema : enum("L to R", "R to L") # agreement is one row
 Channels_per_slide : enum(1, 2, 3, 4)
-Channel_1 :  ???  # Link to Virus_label or Organic_Table; requires multiple foreign key to sam table
+  # Channel 1 is always the counterstain, defined in Histology
 Channel_2 :  ???  # Link to Virus_label or Organic_lable
 Channel_3 :  ???  # Link to Virus_label or Organic_lable
 Channel_4 :  ???  # Link to Virus_label or Organic_lable
@@ -190,20 +190,24 @@ BIG_TABLE: Section
 -> Animal
 -> Section_number
 --------------
-Ch_1_path: filepath(200) # 
-Section_QC : enum("","Missing", "Replace") # This table is the replacement for the "text file"
-Mask_Path :  filepath(200)           # Populate from processing code
-h_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after Orinetation and alignment
-Ch_2_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r2.tiff
-Ch_3_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r3.tiff
-Ch_4_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r4.tiff
-Ch_1_Normalized_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after making histogram
+Section_QC : enum("","Missing", "Replace")
+Ch_1_path:   filepath(200)      # Populate from converted Slides and Slides_TIFF
+Ch_2_path :  filepath(200)           
+Ch_3_Path :  filepath(200) 
+Ch_4_Path :  filepath(200)
 Comments : varchar(2001)		    # assessment
-Ch_1_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from Neuroglancer converter
-Ch_2_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
-Ch_3_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
-Ch_4_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
 
+
+BIG_TABLE: Processed_section #these hold uncropped Tiffs after Section-to-Section alignment ready to be converted for Neuroglancer (Steps 1-5 of current Preprocessing steps)
+-> Section
+--------------
+Mask_Path :  filepath(200)          
+Ch_1_Normalized_Path : filepath(200)     # populate after making histogram normalized and inverted NeuroTrace data
+Ch_1_Afine_path:   filepath(200)      # Populate from converted Slides and Slides_TIFF after inversion, orientation and translation
+Ch_2_Afine_path :  filepath(200)           
+Ch_3_Afine_Path :  filepath(200) 
+Ch_4_Afine_Path :  filepath(200)
+Comments : varchar(2001)		    # assessment
 
 
 ****STOP HERE - MORE TO FOLLOW SOON**** 
