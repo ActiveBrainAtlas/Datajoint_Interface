@@ -140,7 +140,7 @@ Comments : varchar(200)		# assessment
 
 
 BIG_TABLE: Slides       #  this is the replacement for the "scene file"
-Slide_Physical ID : int #primary key; one per slide; assigned here; integer)
+Slide_Physical_ID : int #primary key; one per slide; assigned here; integer)
 -> Scan_run
 -> Animal
 Rescan_number : enum("","1", "2", "3")
