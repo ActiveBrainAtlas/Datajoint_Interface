@@ -151,25 +151,29 @@ Path : filepath(200)            # example: name1_name2_..._"slide number"_"date"
 Comments : varchar(2001)		    # assessment
 
 
-BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file"
+BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file". Further svaes conversions after additonal processing steps that include Orientation, Alignment, Histogram Normalization of counterstain channel (Ch 1), and conversion for use with NeuroGlancer
 -> Scan_run   # FIXED 19 Jan
 -> Slides  # ADDED 19 Jan
 -> Animal
 ----------------
 Section : int
 Section_QC : enum("OK","Missing", "Replace") # This table is the replacement for the "text file"
-Ch_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff
+Mask_Path :  filepath(200)           # Populate from processing code
+Ch_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from bioformat coverter
 Ch_2_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
 Ch_3_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
 Ch_4_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
-Ch_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff
+Ch_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after Orinetation and alignment
 Ch_2_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r2.tiff
 Ch_3_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r3.tiff
 Ch_4_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r4.tiff
+Ch_1_Normalized_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after making histogram
 Comments : varchar(2001)		    # assessment
-# DO WE ADD HISTOGRAM NORMALIZED FILE NAMES?
-# DO WE ADD CONVERTED FILES FOR NEUROGLANCER?
-
+Ch_1_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from Neuroglancer converter
+Ch_2_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
+Ch_3_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
+Ch_4_NG_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
+#FILES ARE NOW READY FOR CONVERSION TO NEUROGLANCER
 ****STOP HERE - MORE TO FOLLOW SOON**** 
 
 We are now past the conversions and up to countouring and alighnment and viewing as a 3-D statck
