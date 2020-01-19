@@ -141,7 +141,7 @@ Slide Physical ID : int #primary key; one per slide; assigned here; integer)
 -> Scan_run
 -> Animal
 ----------------
-Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample 
+Scene_QC_1 : enum("OK","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample ;  FIXED 19 Jan
 Scene_QC_2 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue")
 Scene_QC_3 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Scene_QC_4 : enum("OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
@@ -152,17 +152,20 @@ Comments : varchar(2001)		    # assessment
 
 
 BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file"
-Slide Physical ID : int #primary key; one per slide; assigned here; integer)
--> Scan_run
+-> Scan_run   # FIXED 19 Jan
+-> Slides  # ADDED 19 Jan
 -> Animal
 ----------------
 Section : int
-Section_QC : enum("OK","Missing", "Replace") # This is the replacement foe the "text file"
-Channel_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff
-Channel_2_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_2.tiff
-Channel_3_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_3.tiff
-Channel_4_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_4.tiff
-    #Sequence example: name1_"date"_C00.tiff; name1_"date"_C15.tiff; name1_"date"_C30.tiff; ...;name1_"date"_C75.tiff; 
+Section_QC : enum("OK","Missing", "Replace") # This table is the replacement for the "text file"
+Ch_1_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_1.tiff
+Ch_2_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C15_2.tiff
+Ch_3_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C30_3.tiff
+Ch_4_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C40_4.tiff
+Ch_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff
+Ch_2_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r2.tiff
+Ch_3_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r3.tiff
+Ch_4_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r4.tiff
 Comments : varchar(2001)		    # assessment
 
 
