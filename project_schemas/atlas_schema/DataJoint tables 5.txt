@@ -59,7 +59,7 @@ Comments : varchar(2001)	# assessment
 
 
 SMALL TABLE: Virus
--> Virus ID
+-> Virus_ID
 ----------------
 Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
 Type details  : varchar(500)
@@ -75,7 +75,7 @@ Comments : varchar(2001)	         # assessment
 
 
 SMALL TABLE: Organic_Label
--> Label ID
+-> _Organic_ID
 ----------------
 Type: enum ("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
 Type: Tracer ("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO", )
@@ -132,7 +132,11 @@ Date: date
 File_type : enum("CZI", "JPEG2000", "NDPI", "NGR")
 Section_Scmema : enum("L to R", "R to L") # agreement is one row
 Channels_per_slide : enum(1, 2, 3, 4)
-Comments : varchar(2001)		# assessment
+Channel_1 :  ???  # Link to Virus_label or Organic_Table; requires multiple foreign key to sam table
+Channel_2 :  ???  # Link to Virus_label or Organic_lable
+Channel_3 :  ???  # Link to Virus_label or Organic_lable
+Channel_4 :  ???  # Link to Virus_label or Organic_lable
+Comments : varchar(200)		# assessment
 
 
 BIG_TABLE: Slides       #  this is the replacement for the "scene file"
@@ -182,10 +186,11 @@ Scene_6_Ch_3_Path :  filepath(200)
 Scene_6_Ch_4_Path :  filepath(200)
 
 
-
-
-
-Section
+BIG_TABLE: Section
+-> Animal
+-> Section_number
+--------------
+Ch_1_path: filepath(200) # 
 Section_QC : enum("","Missing", "Replace") # This table is the replacement for the "text file"
 Mask_Path :  filepath(200)           # Populate from processing code
 h_1_rough_align_Path :  filepath(200)            # example: name1_name2_..._"slide number"_"date"_C00_r1.tiff ; populate after Orinetation and alignment
