@@ -124,14 +124,15 @@ Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
 -> Animal				# currently assumes tissue from a single animals on each slide
 ----------------
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
-Machine : enum("", "Zeiss", "Axioscan", "Nanozoomer")
+Machine : enum("", "Zeiss", "Axioscan", "Nanozoomer","Olympus VA")
 Objective : enum("60X", "40X", "20X", "10X")
 Resolution (µm): float			# lateral resolution if available
 Number_of_slides : int
 Date: date
 File_type : enum("CZI", "JPEG2000", "NDPI", "NGR")
-Section_Scmema : enum("L to R", "R to L") # agreement is one row
-Channels_per_slide : enum(1, 2, 3, 4)
+Scenes_per_slide : enum(1, 2, 3, 4, 5, 6)
+Scenes_Schema : enum("L to R", "R to L") # agreement is one row
+Channels_per_scene : enum(1, 2, 3, 4)
   # Channel 1 is always the counterstain, defined in Histology
 Channel_2 :  ???  # Link to Virus_label or Organic_lable
 Channel_3 :  ???  # Link to Virus_label or Organic_lable
