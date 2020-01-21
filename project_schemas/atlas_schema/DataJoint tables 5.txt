@@ -151,7 +151,7 @@ Scene_QC_3 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue")
 Scene_QC_4 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Scene_QC_5 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Scene_QC_6 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
+Slide_path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
 Comments : varchar(2001)		    # assessment
 
 
