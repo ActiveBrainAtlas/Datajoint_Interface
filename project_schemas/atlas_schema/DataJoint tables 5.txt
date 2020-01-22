@@ -120,7 +120,7 @@ Comments : varchar(2001)		# assessment
 
 
 SMALL TABLE: Scan_run
-Scan_ID	: charvar(20) # primary key; assigned here; characters and numbers
+Scan_ID	: charvar(20) # primary key; assigned by AxisoScanner or coule be assigned by user; characters and numbers
 -> Animal				# currently assumes tissue from a single animals on each slide
 ----------------
 Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")	# default population is from Histology
@@ -146,17 +146,17 @@ Slide_Physical_ID : int #primary key; one per slide; assigned here; integer)
 Rescan_number : enum("","1", "2", "3")
 ----------------
 Scene_QC_1 : enum("","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample ;  FIXED 19 Jan
-Scene_QC_2 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue")
-Scene_QC_3 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_4 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_5 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_6 : enum("","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_2 : enum(""," OK","Missing/Bad", "Out-of-focus", "Bad_tissue")
+Scene_QC_3 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_4 : enum("", "OK",Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_5 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_6 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
 Slide_path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
 Comments : varchar(2001)		    # assessment
 
 
 BIG_TABLE: Slides_TIFF       # Used to populate sections after Bioconverter; this is the replacement foe the "text file". Further svaes conversions after additonal processing steps that include Orientation, Alignment, Histogram Normalization of counterstain channel (Ch 1), and conversion for use with NeuroGlancer
--> Scan_run   # FIXED 19 Jan
+-> Scan_run  
 -> Slides
 -> Animal
 ----------------
