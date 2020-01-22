@@ -64,7 +64,7 @@ SMALL TABLE: Virus
 Type: enum ("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
 Type details  : varchar(500)
 Titer (particles/ml) : float	# if applicable
-Label: enum ("", "YFP", "GFP", "RFP", "histo-tag") 
+Label: enum ("", "YFP", "CFP", "GFP", "RFP", "histo-tag") 
 Label: varchar(200)
 Excitation_wavelength (nm) : int   # if applicable 
 Excitation_range (nm) : int        # if applicable
@@ -140,17 +140,17 @@ Channel_4 :  ???
 Comments : varchar(200)		# assessment
 
 
-BIG_TABLE: Slides       #  this is the replacement for the "scene file"
+BIG_TABLE: Slides       #  this is the replacement for the "Scan Notes"
 Slide_Physical_ID : int #primary key; one per slide; assigned here; integer)
 -> Scan_run
 Rescan_number : enum("","1", "2", "3")
 ----------------
 Scene_QC_1 : enum("","Missing/Bad", "Out-of-focus", "Bad tissue") # Missing / Bad are ignored and include folds, dirt over sample ;  FIXED 19 Jan
-Scene_QC_2 : enum(""," OK","Missing/Bad", "Out-of-focus", "Bad_tissue")
-Scene_QC_3 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_4 : enum("", "OK",Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_5 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
-Scene_QC_6 : enum("", "OK","Missing/Bad", "Out-of-focus", "Bad_tissue") 
+Scene_QC_2 : enum(""," OK","Missing", "Out-of-focus", "Bad_tissue")
+Scene_QC_3 : enum("", "OK","Missing", "Out-of-focus", "Bad_tissue") 
+Scene_QC_4 : enum("", "OK",Missing", "Out-of-focus", "Bad_tissue") 
+Scene_QC_5 : enum("", "OK","Missing", "Out-of-focus", "Bad_tissue") 
+Scene_QC_6 : enum("", "OK","Missing", "Out-of-focus", "Bad_tissue") 
 Slide_path : filepath(200)            # example: name1_name2_..._"slide number"_"date".CZI
 Comments : varchar(2001)		    # assessment
 
