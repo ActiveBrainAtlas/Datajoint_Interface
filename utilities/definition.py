@@ -146,12 +146,13 @@ class ScanRun(dj.Manual):
     objective          : enum("60X", "40X", "20X", "10X")
     resolution         : float                                    # (µm) lateral resolution if available
     number_of_slides   : int
-    date               : date
+    Scan_date               : date
     file_type          : enum("CZI", "JPEG2000", "NDPI", "NGR")
     scenes_per_slide   : enum("1", "2", "3", "4", "5", "6")
     section_scmema     : enum("L to R", "R to L")                 # agreement is one row
     channels_per_scene : enum("1", "2", "3", "4")
-    folder_path        : varchar(200)                             # the path to the slides folder on birdstore
+    Slide_folder_path  : varchar(200)                             # the path to the slides folder on birdstore (files to ve uploaded for cenvertion)
+    Converted_folder_path  : varchar(200)                             # the path to the slides folder on birdstore (files to ve uploaded for cenvertion)
     # Add identifiers for all 4 channels. 
     # Channel 1 is always counterstain.
     # Channels 2 to 4 are a virus or an organic label that are choosen from our virus/organicLabel tabels.
