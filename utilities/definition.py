@@ -27,7 +27,7 @@ class Animal(dj.Manual):
     definition = """
     prep_id            : varchar(20)    # Name for lab mouse/rat, max 20 chars, primary key
     ---
-    performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")
+    performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
     date_of_birth      : date           # (date) the mouse's date of birth
     species            : enum("mouse", "rat")
     strain             : varchar(50)
