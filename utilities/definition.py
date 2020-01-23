@@ -53,8 +53,10 @@ class Virus(dj.Manual):
     virus_id              : varchar(20)
     ---
     type                  : enum("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
+    active                : enum("", "no")
     type_details          : varchar(500)
     titer                 : float         # (particles/ml) if applicable
+    lot_number            : varchar(20)
     label                 : enum("", "YFP", "GFP", "RFP", "histo-tag") 
     label2                : varchar(200)
     excitation_wavelength : int           # (nm) if applicable 
@@ -71,6 +73,7 @@ class OrganicLabel(dj.Manual):
     label_id              : varchar(20)
     ---
     type                  : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+    type_lot_number       : varchar(20)
     type_tracer           : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
     type_details          : varchar(500)
     concentration         : float # (µM) if applicable
@@ -149,7 +152,9 @@ class ScanRun(dj.Manual):
     section_scmema     : enum("L to R", "R to L")                 # agreement is one row
     channels_per_scene : enum("1", "2", "3", "4")
     folder_path        : varchar(200)                             # the path to the slides folder on birdstore
-    # CHANGE 1
+    # Add identifiers for all 4 channels. 
+    # Channel 1 is always counterstain.
+    # Channels 2 to 4 are a virus or an organic label that are choosen from our virus/organicLabel tabels.
     comments           : varchar(2001)                            # assessment
     """
 
