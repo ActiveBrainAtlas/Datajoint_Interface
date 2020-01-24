@@ -76,7 +76,7 @@ class OrganicLabel(dj.Manual):
     type_lot_number       : varchar(20)
     type_tracer           : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
     type_details          : varchar(500)
-    concentration         : float # (µM) if applicable
+    concentration (µM)    : float # if applicable
     excitation_wavelength : int # (nm)
     excitation_range      : int # (nm)
     dichroic_cut          : int # (nm)
@@ -94,17 +94,18 @@ class Injection(dj.Manual):
     ---
     -> Virus 
     -> OrganicLabel
-    performance_center  : enum("", "CSHL", "Salk", "UCSD", "HHMI")
-    anesthesia          : enum("", "ketamine", "isoflurane")
-    method              : enum("", "iontophoresis", "pressure", "volume")
-    pipet               : enum("", "glass", "metal")
-    location            : varchar(20)   # examples: muscle, brain region
-    brain_location_dv   : float         # (mm) dorsal-ventral relative to Bregma
-    brain_location_ml   : float         # (mm) medial-lateral relative to Bregma; check if positive
-    brain_location_ap   : float         # (mm) anterior-posterior relative to Bregma
-    date                : date
-    goal                : varchar(2001)
-    comments            : varchar(2001) # assessment
+    performance_center      : enum("", "CSHL", "Salk", "UCSD", "HHMI")
+    anesthesia              : enum("", "ketamine", "isoflurane")
+    method                  : enum("", "iontophoresis", "pressure", "volume")
+    injection_volume (nL)   : float 
+    pipet                   : enum("", "glass", "metal")
+    location                : varchar(20)   # examples: muscle, brain region
+    brain_location_dv       : float         # (mm) dorsal-ventral relative to Bregma
+    brain_location_ml       : float         # (mm) medial-lateral relative to Bregma; check if positive
+    brain_location_ap       : float         # (mm) anterior-posterior relative to Bregma
+    date                    : date
+    goal                    : varchar(2001)
+    comments                : varchar(2001) # assessment
     """
 
 @schema
