@@ -113,8 +113,8 @@ class Histology(dj.Manual):
     definition = """
     -> Animal
     ---
-    -> Virus
-    -> OrganicLabel
+    -> Virus # default is null
+    -> OrganicLabel # default is null
     performance_center      : enum("", "CSHL", "Salk", "UCSD", "HHMI")   # default population is from Injection
     anesthesia              : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
     perfusion_age_in_days   : tinyint unsigned
