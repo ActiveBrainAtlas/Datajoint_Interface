@@ -141,7 +141,7 @@ class Histology(dj.Manual):
 @schema 
 class ScanRun(dj.Manual):
     definition = """
-    scan_id            : varchar(20)                            
+    scan_id            : int                            
     -> Animal                                                     # currently assumes tissue from a single animals on each slide
     ---
     performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
@@ -176,6 +176,7 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+        #"Bad tissue" is interpretted as one missing section
     path              : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
     comments          : varchar(2001)                                     # assessment
     """
