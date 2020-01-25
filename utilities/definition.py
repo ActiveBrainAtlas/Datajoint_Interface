@@ -167,7 +167,7 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     -> ScanRun
     rescan_number     : enum("", "1", "2", "3")
     ---
-    scene_qc_1        : enum("", "Missing", "Out-of-focus", "Bad tissue") # Missing / Bad counterstain are ignored and include folds, dirt over sample 
+    scene_qc_1        : enum("", "Missing 20u", "40u", "60u", "80u", "100u", "120µ","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
     scene_qc_2        : enum("", "Missing", "Out-of-focus", "Bad tissue")
     scene_qc_3        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
     scene_qc_4        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
@@ -245,7 +245,7 @@ class Section(dj.Imported):
     ch_2_path      : varchar(200)           
     ch_3_path      : varchar(200) 
     ch_4_path      : varchar(200)
-    comments       : varchar(2001)
+    comments       : varchar(200)
     """
 
 @schema
