@@ -25,68 +25,69 @@ schema = dj.schema(parameters['schema'])
 @schema
 class Animal(dj.Manual):
     definition = """
-    prep_id            : varchar(20)    # Name for lab mouse/rat, max 20 chars, primary key
+    prep_id             : varchar(20)    # Name for lab mouse/rat, max 20 chars, primary key
     ---
-    performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
-    date_of_birth      : date           # (date) the mouse's date of birth
-    species            : enum("mouse", "rat")
-    strain             : varchar(50)
-    sex                : enum("M", "F") # (M/F) either 'M' for male, 'F' for female
-    genotype           : varchar(100)   # transgenic description, Usually "C57"
-    breeder_line       : varchar(100)
-    tissue_source      : enum("", "animal", "brain", "slides")
-    vender             : varchar(100)   # if not from a performance center
-    ship_date          : date
-    shipper            : enum("", "FedEx", "UPS")
-    tracking_number    : varchar(100)
-    aliases_1          : varchar(100)   # names given by others
-    aliases_2          : varchar(100)
-    aliases_3          : varchar(100)
-    aliases_4          : varchar(100)
-    aliases_5          : varchar(100)
-    comments           : varchar(2001)  # assessment
+    performance_center  : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
+    date_of_birth       : date           # (date) the mouse's date of birth
+    species             : enum("mouse", "rat")
+    strain = NULL       : varchar(50)
+    sex                 : enum("M", "F") # (M/F) either 'M' for male, 'F' for female
+    genotype = NULL     : varchar(100)   # transgenic description, usually "C57"; We will need a genotype table
+    breeder_line = NULL : varchar(100)                                           # We will need a local breeding table
+    vender              : enum ("", "Jackson", "Charles River", "Harlan", "NIH", "Taconic") 
+    stock_number = NULL : varchar(100)   # if not from a performance center
+    tissue_source       : enum("", "animal", "brain", "slides")
+    ship_date           : date
+    shipper             : enum("", "FedEx", "UPS")
+    tracking_number = NULL : varchar(100)
+    aliases_1 = NULL    : varchar(100)   # names given by others
+    aliases_2 = NULL    : varchar(100)
+    aliases_3 = NULL    : varchar(100)
+    aliases_4 = NULL    : varchar(100)
+    aliases_5 = NULL    : varchar(100)
+    comments            : varchar(2001)  # assessment
     """
-    
+     
 @schema
 class Virus(dj.Manual):
     definition = """
     virus_id              : varchar(20)
     ---
     type                  : enum("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
-    active                : enum("", "no")
-    type_details          : varchar(500)
-    titer                 : float         # (particles/ml) if applicable
+    active = NULL         : enum("", "no")
+    type_details  =NULL   : varchar(500)
+    titer = 0             : float         # (particles/ml) if applicable
     lot_number            : varchar(20)
     label                 : enum("", "YFP", "GFP", "RFP", "histo-tag") 
     label2                : varchar(200)
-    excitation_wavelength : int           # (nm) if applicable 
-    excitation_range      : int           # (nm) if applicable
-    dichroic_cut          : int           # (nm) if applicable
-    emission_wavelength   : int # (nm)
-    emission_range        : int # (nm)
+    excitation_wavelength = 0  : int           # (nm) if applicable
+    excitation_range = 0       : int           # (nm) if applicable
+    dichroic_cut  = 0          : int           # (nm) if applicable
+    emission_wavelength = 0    : int           # (nm) if applicable
+    emission_range  = 0        : int           # (nm) if applicable0
     source                : enum("", "Adgene", "Salk", "Penn", "UNC")
     source_details        : varchar(100)
-    comments              : varchar(2001) # assessment    
+    comments = NULL       : varchar(2000) # assessment    
     """
     
 @schema
 class OrganicLabel(dj.Manual):
     definition = """
-    label_id              : varchar(20)
+    label_id                  : varchar(20)
     ---
-    type                  : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
-    type_lot_number       : varchar(20)
-    type_tracer           : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
-    type_details          : varchar(500)
-    concentration (µM)    : float # if applicable
-    excitation_wavelength : int # (nm)
-    excitation_range      : int # (nm)
-    dichroic_cut          : int # (nm)
-    emission_wavelength   : int # (nm)
-    emission_range        : int # (nm)
-    source                : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
-    souce_details         : varchar(100)
-    comments              : varchar(2001) # assessment
+    type                      : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+    type_lot_number = NULL    : varchar(20)
+    type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
+    type_details = NULL       : varchar(500)
+    concentration (µM) = 0    : float # if applicable
+    excitation_wavelength = 0 : int # (nm)
+    excitation_range = 0      : int # (nm)
+    dichroic_cut = 0          : int # (nm)
+    emission_wavelength = 0   : int # (nm)
+    emission_range = 0        : int # (nm)
+    source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
+    souce_details = NULL      : varchar(100)
+    comments = NULL           : varchar(2000) # assessment
     """
 
 @schema
@@ -99,15 +100,14 @@ class Injection(dj.Manual):
     performance_center      : enum("", "CSHL", "Salk", "UCSD", "HHMI")
     anesthesia              : enum("", "ketamine", "isoflurane")
     method                  : enum("", "iontophoresis", "pressure", "volume")
-    injection_volume (nL)   : float 
-    pipet                   : enum("", "glass", "metal")
-    location                : varchar(20)   # examples: muscle, brain region
-    brain_location_dv       : float         # (mm) dorsal-ventral relative to Bregma
-    brain_location_ml       : float         # (mm) medial-lateral relative to Bregma; check if positive
-    brain_location_ap       : float         # (mm) anterior-posterior relative to Bregma
-    date                    : date
-    goal                    : varchar(2001)
-    comments                : varchar(2001) # assessment
+    injection_volume (nL) = 0   : float 
+    pipet                   : enum("", "glass", "quartz", "Hamilton", "syringe needle")
+    location  = NULL        : varchar(20)   # examples: muscle, brain region
+    brain_location_dv = 0    : float         # (mm) dorsal-ventral relative to Bregma
+    brain_location_ml = 0    : float         # (mm) medial-lateral relative to Bregma; check if positive
+    brain_location_ap = 0    : float         # (mm) anterior-posterior relative to Bregma
+    date                     : date
+    comments = NULL          : varchar(2001) # assessment
     """
 
 @schema
@@ -117,25 +117,24 @@ class Histology(dj.Manual):
     ---
     -> Virus # default is null
     -> OrganicLabel # default is null
-    performance_center      : enum("", "CSHL", "Salk", "UCSD", "HHMI")   # default population is from Injection
-    anesthesia              : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
-    perfusion_age_in_days   : tinyint unsigned
+    performance_center          : enum("", "CSHL", "Salk", "UCSD", "HHMI")   # default population is from Injection
+    anesthesia                  : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
+    perfusion_age_in_days        : tinyint unsigned
     perfusion_date          : date
-    exsangination_method    : enum("", "PBS", "aCSF", "Ringers")
-    fixative_method         : enum("", "Para", "Glut", "Post fix") 
-    special_perfusion_notes : varchar(200)
-    post_fixation_period    : tinyint unsigned                                               # (days)
-    whole_brain             : enum("Y", "N")
-    block                   : varchar(200)                                                   # if applicable
-    date_frozen             : date                                                           # if applicable
-    date_sectioned          : date
-    sectioning_method       : enum("", "cryoJane", "cryostat", "vibratome", "optical")
-    section_thickness       : tinyint unsigned
-    orientation             : enum("coronal", "horizontal", "sagittal", "oblique")
-    oblique_notes           : varchar(200)
-    mounting                : enum("every section", "2nd", "3rd", "4th", "5ft", "6th")       # used to automatically populate Placeholder
-    counterstain            : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
-    comments                : varchar(2001)                                                  # assessment
+    exsangination_method         : enum("", "PBS", "aCSF", "Ringers")
+    fixative_method               : enum("", "Para", "Glut", "Post fix") 
+    special_perfusion_notes = NULL : varchar(200)
+    post_fixation_period = 0   : tinyint unsigned                                               # (days)
+    whole_brain                  : enum("Y", "N")
+    block = NULL                 : varchar(200)                                                   # if applicable
+   date_sectioned                : date
+    sectioning_method             : enum("", "cryoJane", "cryostat", "vibratome", "optical", "sliding microtiome")
+    section_thickness (µm) = 20   : tinyint unsigned
+    orientation                   : enum("coronal", "horizontal", "sagittal", "oblique")
+    oblique_notes = NULL          : varchar(200)
+    mounting                      : enum("every section", "2nd", "3rd", "4th", "5ft", "6th")       # used to automatically populate Placeholder
+    counterstain                  : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
+    comments                      : varchar(2001)                                                  # assessment
     """
 
 @schema 
@@ -144,23 +143,23 @@ class ScanRun(dj.Manual):
     scan_id            : int                            
     -> Animal                                                     # currently assumes tissue from a single animals on each slide
     ---
-    performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
-    machine            : enum("", "Zeiss", "Axioscan", "Nanozoomer","Olympus VA")
-    objective          : enum("60X", "40X", "20X", "10X")
-    resolution         : float                                    # (µm) lateral resolution if available
-    number_of_slides   : int
-    Scan_date               : date
-    file_type          : enum("CZI", "JPEG2000", "NDPI", "NGR")
-    scenes_per_slide   : enum("1", "2", "3", "4", "5", "6")
-    section_scmema     : enum("L to R", "R to L")                 # agreement is one row
-    channels_per_scene : enum("1", "2", "3", "4")
-    Slide_folder_path  : varchar(200)                             # the path to the slides folder on birdstore (files to be converted)
+    performance_center     : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
+    machine                : enum("", "Zeiss", "Axioscan", "Nanozoomer","Olympus VA")
+    objective              : enum("60X", "40X", "20X", "10X")
+    resolution = 0         : float                                    # (µm) lateral resolution if available
+    number_of_slides       : int
+    Scan_date              : date
+    file_type              : enum("CZI", "JPEG2000", "NDPI", "NGR")
+    scenes_per_slide       : enum("1", "2", "3", "4", "5", "6")
+    section_scmema         : enum("L to R", "R to L")                 # agreement is one row
+    channels_per_scene     : enum("1", "2", "3", "4")
+    Slide_folder_path      : varchar(200)                             # the path to the slides folder on birdstore (files to be converted)
     Converted_folder_path  : varchar(200)                         # the path to the slides folder on birdstore after convertion
-    Ch_1_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")   # This is counterstain Channel
-    Ch_2_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
-    Ch_3_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
-    Ch_4_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
-    comments          : varchar(2001) # assessment
+    Ch_1_filter_set        :enum("", "68", "47", "38", "46", "63", "64", "50")   # This is counterstain Channel
+    Ch_2_filter_set        :enum("", "68", "47", "38", "46", "63", "64", "50")
+    Ch_3_filter_set        :enum("", "68", "47", "38", "46", "63", "64", "50")
+    Ch_4_filter_set        :enum("", "68", "47", "38", "46", "63", "64", "50")
+    comments = NULL        : varchar(2001) # assessment
     """
 
 @schema
@@ -177,8 +176,8 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         #"Bad tissue" is interpretted as one missing section
-    path              : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
-    comments          : varchar(2001)                                     # assessment
+    path = NULL        : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
+    comments = NULL    : varchar(2001)                                     # assessment
     """
     
     def make(self, key):
@@ -213,7 +212,7 @@ class Slides_CZI_to_TIF(dj.Imported): # Used to populate sections after Bioconve
     Scene_number    : tinyint
     Channel         : tinyint
     Scanner_counter : int
-    Comments        : varchar(2001) # assessment
+    Comments = NULL  : varchar(2000) # assessment
     Converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
        # DK39 is the animal name (added by renaming file)
        # slide067 refers to physical slide 67 (added by renaming file)
@@ -233,12 +232,12 @@ class Section(dj.Imported):
     -> Animal
     section_number : int
     ---
-    section_qc     : enum("OK","Missing", "Replace")
-    ch_1_path      : varchar(200) # Populate from converted Slides and Slides_TIFF
-    ch_2_path      : varchar(200)           
-    ch_3_path      : varchar(200) 
-    ch_4_path      : varchar(200)
-    comments       : varchar(200)
+    section_qc      : enum("OK","Missing", "Replace")
+    ch_1_path       : varchar(200) # Populate from converted Slides and Slides_TIFF
+    ch_2_path       : varchar(200)           
+    ch_3_path       : varchar(200) 
+    ch_4_path       : varchar(200)
+    Comments = NULL : varchar(2000) # assessment
     """
 
 @schema
@@ -252,7 +251,7 @@ class Processed_section(dj.Imported): #these hold uncropped Tiffs after Section-
     ch_2_afine_path      : varchar(200)           
     ch_3_afine_path      : varchar(200) 
     ch_4_afine_path      : varchar(200)
-    comments             : varchar(2001) # assessment
+    Comments = NULL : varchar(2000) # assessment
     """
 
 if action == 'create':
