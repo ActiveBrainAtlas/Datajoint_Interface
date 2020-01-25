@@ -156,11 +156,11 @@ class ScanRun(dj.Manual):
     channels_per_scene : enum("1", "2", "3", "4")
     Slide_folder_path  : varchar(200)                             # the path to the slides folder on birdstore (files to be converted)
     Converted_folder_path  : varchar(200)                         # the path to the slides folder on birdstore after convertion
-    Channel_1_filters   :enum("CFP", Etc)   #This is counterstain Channel
-    Channel_2_filters   :enum("CFP", Etc)   # FIX ME
-    Channel_3_filters   :enum("CFP", Etc)   # FIX ME
-    Channel_4_filters   :enum("CFP", Etc)   # FIX ME
-    comments           : varchar(2001)                            # assessment
+    Ch_1_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")   # This is counterstain Channel
+    Ch_2_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
+    Ch_3_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
+    Ch_4_filter_set   :enum("68", "47", "38", "46", "63", "64", "50")
+    comments          : varchar(2001) # assessment
     """
 
 @schema
