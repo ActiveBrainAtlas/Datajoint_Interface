@@ -62,6 +62,8 @@ class Virus(dj.Manual):
     excitation_wavelength : int           # (nm) if applicable 
     excitation_range      : int           # (nm) if applicable
     dichroic_cut          : int           # (nm) if applicable
+    emission_wavelength   : int # (nm)
+    emission_range        : int # (nm)
     source                : enum("", "Adgene", "Salk", "Penn", "UNC")
     source_details        : varchar(100)
     comments              : varchar(2001) # assessment    
@@ -154,9 +156,10 @@ class ScanRun(dj.Manual):
     channels_per_scene : enum("1", "2", "3", "4")
     Slide_folder_path  : varchar(200)                             # the path to the slides folder on birdstore (files to be converted)
     Converted_folder_path  : varchar(200)                         # the path to the slides folder on birdstore after convertion
-    # Add identifiers for all 4 channels. 
-    # Channel 1 is always counterstain.
-    # Channels 2 to 4 are a virus or an organic label that are choosen from our virus/organic Label tabels.
+    Channel_1_filters   :enum("CFP", Etc)   #This is counterstain Channel
+    Channel_2_filters   :enum("CFP", Etc)   # FIX ME
+    Channel_3_filters   :enum("CFP", Etc)   # FIX ME
+    Channel_4_filters   :enum("CFP", Etc)   # FIX ME
     comments           : varchar(2001)                            # assessment
     """
 
@@ -167,12 +170,12 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     -> ScanRun
     rescan_number     : enum("", "1", "2", "3")
     ---
-    scene_qc_1        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
-    scene_qc_2        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
-    scene_qc_3        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_4        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_5        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_6        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_1        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
+    scene_qc_2        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
+    scene_qc_3        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     path              : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
     comments          : varchar(2001)                                     # assessment
     """
@@ -198,38 +201,27 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
             self.insert1(new_key)
         
 @schema
-class SlidesTIFF(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
+class Slides_CZI_to_TIF(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
     definition="""
     -> Slides
     -> ScanRun
     -> Animal
     ----------------
-    scene_1_ch_1_path : varchar(200) # example: name1_name2_..._"slide number"_"date"_C00_1.tiff; populate from bioformat coverter
-    scene_1_ch_2_path : varchar(200)
-    scene_1_ch_3_path : varchar(200)
-    scene_1_ch_4_path : varchar(200)
-    scene_2_ch_1_path : varchar(200)
-    scene_2_ch_2_path : varchar(200)
-    scene_2_ch_3_path : varchar(200)
-    scene_2_ch_4_path : varchar(200)
-    scene_3_ch_1_path : varchar(200)
-    scene_3_ch_2_path : varchar(200)
-    scene_3_ch_3_path : varchar(200)
-    scene_3_ch_4_path : varchar(200)
-    scene_4_ch_1_path : varchar(200)
-    scene_4_ch_2_path : varchar(200)
-    scene_4_ch_3_path : varchar(200)
-    scene_4_ch_4_path : varchar(200)
-    scene_5_ch_1_path : varchar(200)
-    scene_5_ch_2_path : varchar(200)
-    scene_5_ch_3_path : varchar(200)
-    scene_5_ch_4_path : varchar(200)
-    scene_6_ch_1_path : varchar(200)
-    scene_6_ch_2_path : varchar(200)
-    scene_6_ch_3_path : varchar(200)
-    scene_6_ch_4_path : varchar(200)
-    comments          : varchar(2001) # assessment
-    """
+    Slide_number    : int
+    Scan_Date       : date
+    Scene_number    : tinyint
+    Channel         : tinyint
+    Scanner_counter : int
+    Comments        : varchar(2001) # assessment
+    Converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
+       # DK39 is the animal name (added by renaming file)
+       # slide067 refers to physical slide 67 (added by renaming file)
+       # 2020_01_02 is the scan date (imposed by scanner)
+       # 8271 is the counter (imposed by scanner)
+       # CZI is the file type (imposed by machine)
+       # S10 is the scene number (imposed by BioFormats converter; monotonically increasing by not contiguous number)
+       # C01 is the channel number (imposed by BioFormats converter)
+       """
     
     def make(self, key):
         print('SlidesTIFF:', key)
