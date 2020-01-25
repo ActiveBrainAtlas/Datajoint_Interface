@@ -167,12 +167,12 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     -> ScanRun
     rescan_number     : enum("", "1", "2", "3")
     ---
-    scene_qc_1        : enum("", "Missing 20u", "40u", "60u", "80u", "100u", "120µ","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
-    scene_qc_2        : enum("", "Missing", "Out-of-focus", "Bad tissue")
-    scene_qc_3        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
-    scene_qc_4        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
-    scene_qc_5        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
-    scene_qc_6        : enum("", "Missing", "Out-of-focus", "Bad tissue") 
+    scene_qc_1        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
+    scene_qc_2        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
+    scene_qc_3        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_4        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_5        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_6        : enum("", "Missing one", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     path              : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
     comments          : varchar(2001)                                     # assessment
     """
