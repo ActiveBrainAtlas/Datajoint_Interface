@@ -14,27 +14,27 @@ def get_schema(credential):
     @schema
     class Animal(dj.Manual):
         definition = """
-        prep_id            : varchar(20) # Name for lab mouse/rat, max 20 chars, primary key
-        ---
-        performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
-        date_of_birth      : date # (date) the mouse's date of birth
-        species            : enum("mouse", "rat")
-        strain             : varchar(50) # (= NULL)
-        sex                : enum("M", "F") # (M/F) either 'M' for male, 'F' for female
-        genotype           : varchar(100) # transgenic description, usually "C57"; We will need a genotype table (= NULL)
-        breeder_line       : varchar(100) # We will need a local breeding table (= NULL)
-        vender             : enum ("", "Jackson", "Charles River", "Harlan", "NIH", "Taconic") 
-        stock_number       : varchar(100) # if not from a performance center (= NULL)
-        tissue_source      : enum("", "animal", "brain", "slides")
-        ship_date          : date
-        shipper            : enum("", "FedEx", "UPS")
-        tracking_number    : varchar(100) # (= NULL)
-        aliases_1          : varchar(100) # names given by others (= NULL)
-        aliases_2          : varchar(100) # (= NULL) 
-        aliases_3          : varchar(100) # (= NULL)
-        aliases_4          : varchar(100) # (= NULL)
-        aliases_5          : varchar(100) # (= NULL)
-        comments           : varchar(2001) # assessment
+        prep_id                : varchar(20) # Name for lab mouse/rat, max 20 chars, primary key
+        ---    
+        performance_center     : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
+        date_of_birth          : date # the mouse's date of birth
+        species                : enum("mouse", "rat")
+        strain = NULL          : varchar(50)
+        sex                    : enum("M", "F") # (M/F) either 'M' for male, 'F' for female
+        genotype = NULL        : varchar(100) # transgenic description, usually "C57"; We will need a genotype table 
+        breeder_line = NULL    : varchar(100) # We will need a local breeding table 
+        vender                 : enum ("", "Jackson", "Charles River", "Harlan", "NIH", "Taconic") 
+        stock_number = NULL    : varchar(100) # if not from a performance center
+        tissue_source          : enum("", "animal", "brain", "slides")
+        ship_date              : date
+        shipper                : enum("", "FedEx", "UPS")
+        tracking_number = NULL : varchar(100)
+        aliases_1 = NULL       : varchar(100) # names given by others 
+        aliases_2 = NULL       : varchar(100) 
+        aliases_3 = NULL       : varchar(100)
+        aliases_4 = NULL       : varchar(100)
+        aliases_5 = NULL       : varchar(100)
+        comments = NULL        : varchar(2001) # assessment
         """
          
     @schema
@@ -42,21 +42,21 @@ def get_schema(credential):
         definition = """
         virus_id  : varchar(20)
         ---
-        type                  : enum("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
-        active                : enum("", "no") # (= NULL)
-        type_details          : varchar(500) # (= NULL)
-        titer                 : float # (particles/ml) if applicable (= 0)
-        lot_number            : varchar(20)
-        label                 : enum("", "YFP", "GFP", "RFP", "histo-tag") 
-        label2                : varchar(200)
-        excitation_wavelength : int # (nm) if applicable (= 0)
-        excitation_range      : int # (nm) if applicable (= 0)
-        dichroic_cut          : int # (nm) if applicable (= 0)
-        emission_wavelength   : int # (nm) if applicable (= 0)
-        emission_range        : int # (nm) if applicable (= 0)
-        source                : enum("", "Adgene", "Salk", "Penn", "UNC")
-        source_details        : varchar(100)
-        comments              : varchar(2000) # assessment # (= NULL)
+        type                      : enum("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
+        active = NULL             : enum("", "no")
+        type_details = NULL       : varchar(500)
+        titer = 0                 : float # (particles/ml) if applicable 
+        lot_number                : varchar(20)
+        label                     : enum("", "YFP", "GFP", "RFP", "histo-tag") 
+        label2                    : varchar(200)
+        excitation_wavelength = 0 : int # (nm) if applicable
+        excitation_range = 0      : int # (nm) if applicable
+        dichroic_cut = 0          : int # (nm) if applicable
+        emission_wavelength = 0   : int # (nm) if applicable
+        emission_range = 0        : int # (nm) if applicable
+        source                    : enum("", "Adgene", "Salk", "Penn", "UNC")
+        source_details            : varchar(100)
+        comments = NULL           : varchar(2000) # assessment # 
         """
         
     @schema
@@ -65,18 +65,18 @@ def get_schema(credential):
         label_id                  : varchar(20)
         ---
         type                      : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
-        type_lot_number           : varchar(20) # (= NULL)
+        type_lot_number = NULL    : varchar(20)
         type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
-        type_details              : varchar(500) # (= NULL)
-        concentration             : float # (µM) if applicable (= 0)
-        excitation_wavelength     : int # (nm) (= 0)
-        excitation_range          : int # (nm) (= 0)
-        dichroic_cut              : int # (nm) (= 0)
-        emission_wavelength       : int # (nm) (= 0)
-        emission_range            : int # (nm) (= 0)
+        type_details = NULL       : varchar(500)
+        concentration = 0         : float # (µM) if applicable
+        excitation_wavelength = 0 : int # (nm)
+        excitation_range = 0      : int # (nm)
+        dichroic_cut = 0          : int # (nm)
+        emission_wavelength = 0   : int # (nm)
+        emission_range = 0        : int # (nm)
         source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
-        souce_details             : varchar(100) # (= NULL)
-        comments                  : varchar(2000) # assessment (= NULL)
+        souce_details = NULL      : varchar(100)
+        comments = NULL           : varchar(2000) # assessment
         """
     
     @schema
@@ -86,17 +86,17 @@ def get_schema(credential):
         ---
         -> Virus 
         -> OrganicLabel
-        performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")
-        anesthesia         : enum("", "ketamine", "isoflurane")
-        method             : enum("", "iontophoresis", "pressure", "volume")
-        injection_volume   : float # (nL) (= 0)
-        pipet              : enum("", "glass", "quartz", "Hamilton", "syringe needle")
-        location           : varchar(20) # examples: muscle, brain region (= NULL)
-        brain_location_dv  : float # (mm) dorsal-ventral relative to Bregma (= 0)
-        brain_location_ml  : float # (mm) medial-lateral relative to Bregma; check if positive (= 0)
-        brain_location_ap  : float # (mm) anterior-posterior relative to Bregma (= 0)
-        date               : date
-        comments           : varchar(2001) # assessment (= NULL)
+        performance_center    : enum("", "CSHL", "Salk", "UCSD", "HHMI")
+        anesthesia            : enum("", "ketamine", "isoflurane")
+        method                : enum("", "iontophoresis", "pressure", "volume")
+        injection_volume = 0  : float # (nL)
+        pipet                 : enum("", "glass", "quartz", "Hamilton", "syringe needle")
+        location = NULL       : varchar(20) # examples: muscle, brain region
+        brain_location_dv = 0 : float # (mm) dorsal-ventral relative to Bregma
+        brain_location_ml = 0 : float # (mm) medial-lateral relative to Bregma; check if positive
+        brain_location_ap = 0 : float # (mm) anterior-posterior relative to Bregma
+        date                  : date
+        comments = NULL       : varchar(2001) # assessment
         """
     
     @schema
@@ -104,26 +104,26 @@ def get_schema(credential):
         definition = """
         -> Animal
         ---
-        -> Virus # (= null)
-        -> OrganicLabel # (= null)
-        performance_center      : enum("", "CSHL", "Salk", "UCSD", "HHMI")   # default population is from Injection
-        anesthesia              : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
-        perfusion_age_in_days   : tinyint unsigned
-        perfusion_date          : date
-        exsangination_method    : enum("", "PBS", "aCSF", "Ringers")
-        fixative_method         : enum("", "Para", "Glut", "Post fix") 
-        special_perfusion_notes : varchar(200) # (= NULL)
-        post_fixation_period    : tinyint unsigned # (days) (= 0)
-        whole_brain             : enum("Y", "N")
-        block                   : varchar(200) # if applicable (= NULL)
-        date_sectioned          : date
-        sectioning_method       : enum("", "cryoJane", "cryostat", "vibratome", "optical", "sliding microtiome")
-        section_thickness       : tinyint unsigned # (µm) (= 20)
-        orientation             : enum("coronal", "horizontal", "sagittal", "oblique")
-        oblique_notes           : varchar(200) # (= NULL)
-        mounting                : enum("every section", "2nd", "3rd", "4th", "5ft", "6th") # used to automatically populate Placeholder
-        counterstain            : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
-        comments                : varchar(2001) # assessment
+        -> Virus # = null
+        -> OrganicLabel # = null
+        performance_center            : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Injection
+        anesthesia                    : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
+        perfusion_age_in_days         : tinyint unsigned
+        perfusion_date                : date
+        exsangination_method          : enum("", "PBS", "aCSF", "Ringers")
+        fixative_method               : enum("", "Para", "Glut", "Post fix") 
+        special_perfusion_notes = NULL: varchar(200)
+        post_fixation_period = 0      : tinyint unsigned # (days)
+        whole_brain                   : enum("Y", "N")
+        block = NULL                  : varchar(200) # if applicable
+        date_sectioned                : date
+        sectioning_method             : enum("", "cryoJane", "cryostat", "vibratome", "optical", "sliding microtiome")
+        section_thickness = 20        : tinyint unsigned # (µm)
+        orientation                   : enum("coronal", "horizontal", "sagittal", "oblique")
+        oblique_notes = NULL          : varchar(200)
+        mounting                      : enum("every section", "2nd", "3rd", "4th", "5ft", "6th") # used to automatically populate Placeholder
+        counterstain                  : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
+        comments                      : varchar(2001) # assessment
         """
     
     @schema 
@@ -135,7 +135,7 @@ def get_schema(credential):
         performance_center     : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
         machine                : enum("", "Zeiss", "Axioscan", "Nanozoomer","Olympus VA")
         objective              : enum("60X", "40X", "20X", "10X")
-        resolution             : float # (µm) lateral resolution if available (= 0)
+        resolution = 0         : float # (µm) lateral resolution if available
         number_of_slides       : int
         scan_date              : date
         file_type              : enum("CZI", "JPEG2000", "NDPI", "NGR")
@@ -148,7 +148,7 @@ def get_schema(credential):
         ch_2_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
         ch_3_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
         ch_4_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
-        comments               : varchar(2001) # assessment (= NULL)
+        comments = NULL        : varchar(2001) # assessment
         """
     
     @schema
@@ -164,8 +164,8 @@ def get_schema(credential):
         scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
-        path              : varchar(200) # example: name1_name2_..._"slide number"_"date".CZI (= NULL)
-        comments          : varchar(2001) # assessment (= NULL)
+        path = NULL       : varchar(200) # example: name1_name2_..._"slide number"_"date".CZI
+        comments = NULL   : varchar(2001) # assessment
         """
         
         def make(self, key):
@@ -200,7 +200,7 @@ def get_schema(credential):
         scene_number    : tinyint
         channel         : tinyint
         scanner_counter : int
-        comments        : varchar(2000) # assessment (= NULL)
+        comments = NULL : varchar(2000) # assessment
         converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
            # DK39 is the animal name (added by renaming file)
            # slide067 refers to physical slide 67 (added by renaming file)
@@ -225,7 +225,7 @@ def get_schema(credential):
         ch_2_path       : varchar(200)           
         ch_3_path       : varchar(200) 
         ch_4_path       : varchar(200)
-        comments        : varchar(2000) # assessment (= NULL)
+        comments = NULL : varchar(2000) # assessment
         """
     
     @schema
@@ -239,7 +239,7 @@ def get_schema(credential):
         ch_2_afine_path      : varchar(200)           
         ch_3_afine_path      : varchar(200) 
         ch_4_afine_path      : varchar(200)
-        comments             : varchar(2000) # assessment (= NULL)
+        comments = NULL      : varchar(2000) # assessments
         """
         
     return schema
