@@ -1,10 +1,12 @@
 # Datajoint utilities
-This folder is for python and BASH scripts for uploading and downloading excel data
+This folder is for python and BASH scripts for creating, uploading and
+downloading data from the database.
 
 # parameters.yaml
-This file stores the datajoint credientials. 
+This file stores the datajoint credientials. We are no longer keeping
+this on Github
 
-# definition.py
+# atlas_schema.py
 This file contains the code to manipulate the tables in the schema. You can use this file to create/drop/populate the table. 
 - Create the table: 
 	`python definition.py create`
@@ -14,9 +16,9 @@ This file contains the code to manipulate the tables in the schema. You can use 
 - Drop the table: 
 	`python definition.py drop`
 	> You need to confirm by entering `yes` to actually drop the table. 
-- Populate the table: 
+- Populate the slides table: 
 	`python definition.py populate`
-	> Currently it is in the **Test** mode, it will automically create a test `Animal` instance and a test `scanRun` instance, so that `Slides` table can be popluated. 
+	> Currently it is in the **Test** mode, it will automically create a test `Animal` instance and a test `scanRun` instance, so that `Slides` table can be popluated.
 
 # download_slides.py
 This file can help you to download the slides for the specified animals from the databsae into a spreadsheet. The spreadsheet will be stored in xlsx format. Each sheet in the spreadsheet stores all of the slides found in the database for each input brain. 
