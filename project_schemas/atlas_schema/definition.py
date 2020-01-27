@@ -180,7 +180,7 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
     scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         #"Bad tissue" is interpretted as one missing section
-    path = NULL        : varchar(200)                                      # example: name1_name2_..._"slide number"_"date".CZI
+    sides_path = NULL  : varchar(200)               # folder on Birdstore
     comments = NULL    : varchar(2001)                                     # assessment
     """
     
