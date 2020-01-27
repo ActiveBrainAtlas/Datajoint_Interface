@@ -1,210 +1,245 @@
 import datajoint as dj
-import numpy as np
-from minio import Minio
-import json
-import yaml
-import sys, os
 
-sys.path.append('./lib')
-from utilities import *
-from initialization_of_db import *
-
-# Fp to file pointers assumes to be 'setup/credFiles.yaml', otherwise pass it directly
-# Load AWS Credentials
-# `creds` needs the following fields: 'access_key', 'secret_access_key
-s3_client = get_s3_client()
-# Load Datajoint Credentials
-# `dj_creds` needs the following fields: 'user', 'passwd'
-dj_creds = get_dj_creds()
-
-# Connect to datajoint server
-dj.conn()
-
-# Define which schema you're using
-schema = dj.schema('common_atlas_test')
-schema.spawn_missing_classes()
-
-
-
-@schema
-class Animal(dj.Manual):
-    definition = """
-    animal : char(20)                         # Name for lab mouse/rat, max 20 chars, primary key
-    ---------
-    Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")
-    Date_of_birth      : date                 # (date) the mouse's date of birth
-    Species            : enum("mouse", "rat")
-    Strain             : varchar(50)
-    Sex                : enum("M", "F")       # (M/F) either 'M' for male, 'F' for female
-    Genotype           : varchar(100)         # transgenic description, Usually "C57"
-    Breeder line       : varchar(100)
-    Tissue_source      : enum("", "animal", "brain", "slides")
-    Vender             : varchar(100)         # if not from a performance center
-    Ship_date          : date
-    Shipper            : enum("", "FedEx", "UPS")
-    Tracking_number    : varchar(100)
-    Aliases 1          : varchar(100)         # names given by others
-    Aliases 2          : varchar(100)         # names given by others
-    Aliases 3          : varchar(100)         # names given by others
-    Comments : varchar(2001)                  # assessment
-    """
+def get_schema(credential):
+    # Connect to the datajoint database
+    dj.config['database.user'] = credential['user']
+    dj.config['database.password'] = credential['password']
+    dj.config['database.host'] = credential['host']
+    dj.conn()
     
-@schema
-class Perfusion(dj.Manual): # Everyone should be doing the same type of perfusion
-    definition = """
-    -> Mouse                        # One injection per mouse
-    ----------
-    injection_date  : date          # (date) what day was the injection performed
-
-    post_fixation_condition_hours  : int   # (int) How long kept in fix (overnight)
-    percent_sucrose_of_fix         : int   # (int) 10 or 20 percent for CSHL stuff
-
-    date_frozen    : date     # (date) The date the brain was frozen
-    date_sectioned : date     # (date) The date the brain was sectioned
-
-    injection_type  : varchar(30)   # (Str) what kind of tracer/injection
-    perfusion_lab   : varchar(30)   # (Str) Which lab perfused the mouse? This lab also kept the mouse
-    
-    assessment=''   : varchar(1000) # (Str) optional, qualitative assessment of injection
-    """
-    
-@schema
-class Injection(dj.Manual): # Viral injections
-    definition = """
-    -> Animal
-    ----------------
-    Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")
-    Anesthesia         : enum("", "ketamine", "isoflurane")
-    Virus              : varchar(100)       # example 'G-pseudo-typed lenti-cre'; multiple rows for Virus, one for each agent
-    Dye                : varchar(100)
-    Method             : enum ("", "iontophoresis", "pressure", "volume")
-    Pipet              : enum ("", "glass", "metal")
-    Concentration (units) : float           # if applicable
-    Titer (particles/ml)  : float           # if applicable
-    Concentration (mg/ml) : float           # if applicable
-    Location              : varchar (20)    # examples: muscle, brain region
-    Brain_location_DV (mm): float           # dorsal-ventral relative to Bregma
-    Brain_location_ML (mm): float           # medial-lateral relative to Bregma; check if positive
-    Brain_location_AP (mm): float           # anterior-posterior relative to Bregma
-    Date                  : date
-    Goal                  : varchar(2001)
-    Comments              : varchar(2001)   # assessment
-    """
-    
-@schema
-class Label(dj.Manual):
-    definition = """
-    -> Label_ID 
-    ----------------------
-    Type                 : enum("", "counterstain","FP", "antibody", "organic dye")
-    Type_of_counterstain : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
-    Details_of_label     : varchar(200)          # only if not a counterstain
-    Tranmission          : enum("yes", "no")
-    Tranmission wavelength (nm) : int
-    Excitation_wavelength (nm)  : int
-    Excitation_range (nm)       : int
-    Dichroic_cut (nm)           : int
-    Emission_wavelength (nm)    : int
-    Emission_range (nm)         : int
-    Comments                    : varchar(2001)  # assessment
-    """
-    
-@schema
-class Histology(dj.Manual):
-    definition = """
-    -> Animal
-    ----------------
-    -> Label
-    Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")  # default population is from Injection
-    Anesthesia         : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
-    Perfusion age in days : tinyint unsigned
-    Perfusion  date    : date
-    Perfusion method   : enum("", "standard", "special")           # standard is DK laboratory SOPXX
-    Special_perfusion_notes     : varchar(200)
-    Post fixation period (days) : tinyint unsigned
-    Whole-brain        : enum("Y", "N")
-    Block              : varchar(200)    # if applicable
-    Date_frozen        : date            # if applicable
-    Date_sectioned     : date
-    Sectioning_method  : enum ("", "cryoJane", "cryostat', "vibratome", "optical")
-    Section_thickness (µm)      :  tinyint unsigned
-    Orientation        : enum("coronal", "horizontal", "sagittal", "oblique")
-    Oblique_notes      : varchar(200)
-    Mounting           : enum("every section", "2nd", "3rd", "4th") # used to automatically populate Placeholder
-    Comments           : varchar(2001)    # assessment
-    """
-# AFTER sectioning, the reporter can either be directly visualized with fuorscence or needs to be 
-#  amplified with immunostaining
-# Hannah, with Axio Scanner, will manually select level of exposure to reduce saturation but make sure the 
-#  the fluorescent molecules are visible
-#    - add: CSHL_did_their_own_blackbox_preprocessing : True or False
-# Assume calibration
-
-@schema 
-class Scan_run(dj.Manual):
-    definition = """
-    Scan_ID  : charvar(20) # primary key; assigned here; characters and numbers
-    ----------------
-    Performance_center : enum("", "CSHL", "Salk", "UCSD", "HHMI")  # default population is from Histology
-    -> Animal   # multiple rows for Animal IDs, one for each ID
-    Machine : enum("", "Zeiss", "Axioscan", "Nanozoomer")
-    Objective : enum("60X", "40X", "20X", "10X")
-    Resolution (µm): float    # lateral resolution if available
-    Number_of_slides : int
-    Date: date
-    File_type : enum("CZI", "JPEG2000", "NDPI", "NGR")
-    Channels_per_slide : enum(1, 2, 3, 4)
-    Comments : varchar(2001)  # assessment
-    """
-    
-    
-    
-@schema 
-class Channels(dj.Manual):
-    definition = """
-    -> Section 
-    Channel_number : enum(1, 2, 3, 4) 
-    ----------------
-    -> Label
-    Path : filepath(200)     # proposed "Animal ID"_"Section number"_"channel".tiff) post extraction by preprocessing
-    Comments : varchar(2001) # assessment
-    """
-    
-@schema 
-class Section(dj.Manual):
-    definition = """
-    -> Animal
-    Section number : int            # This can be reverse ordered for "flipped" directions of cutting. 
-    ----------------
-    -> Slides
-    Scene number : int              #This ordered is manually entered.
-    Path : filepath(200)            # example: name1_name2_..._"slide number"_"date"_"scene number"_"section number"tif, "Animal ID"_"ScanID"_"slide number"_"Section number".tif;
-    Placeholder : enum("Y", "N")		# used for a missing section
-    Comments : varchar(2001)        # assessment
-    """
-
-@schema 
-class Contours(dj.Manual):
-    definition = """
-    -> Section
-    ------------------
-    Snake_contours : filepath(200)    # list of polygons to set-up mask at selected sections. Example filename is "STACK_prep1_thumbnail_initSnakeContours.pkl"
-    """
-
-@schema
-class Slice(dj.Imported):
-    definition = """
-    -> Stack
-    slice_num       : int           # (int) the unique index of the brain slice. Thickness found in Histology table
-    ---
-    slice_name      : varchar(100)  # (str) the name of the slice. Naming scheme may vary from lab to lab
-    valid           : boolean       # (bool) if false, the slice does not exist
-    raw_s3_fp       : varchar(200)  # (str)
-    processed_s3_fp : varchar(200)  # (str)
-    """
-    def make(self, key):
+    # Get the specified schema reference
+    schema = dj.schema(credential['schema'])
+       
+    # Below are the table definitions
+    @schema
+    class Animal(dj.Manual):
+        definition = """
+        prep_id                : varchar(20) # Name for lab mouse/rat, max 20 chars, primary key
+        ---    
+        performance_center     : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
+        date_of_birth          : date # the mouse's date of birth
+        species                : enum("mouse", "rat")
+        strain = NULL          : varchar(50)
+        sex                    : enum("M", "F") # (M/F) either 'M' for male, 'F' for female
+        genotype = NULL        : varchar(100) # transgenic description, usually "C57"; We will need a genotype table 
+        breeder_line = NULL    : varchar(100) # We will need a local breeding table 
+        vender                 : enum ("", "Jackson", "Charles River", "Harlan", "NIH", "Taconic") 
+        stock_number = NULL    : varchar(100) # if not from a performance center
+        tissue_source          : enum("", "animal", "brain", "slides")
+        ship_date              : date
+        shipper                : enum("", "FedEx", "UPS")
+        tracking_number = NULL : varchar(100)
+        aliases_1 = NULL       : varchar(100) # names given by others 
+        aliases_2 = NULL       : varchar(100) 
+        aliases_3 = NULL       : varchar(100)
+        aliases_4 = NULL       : varchar(100)
+        aliases_5 = NULL       : varchar(100)
+        comments = NULL        : varchar(2001) # assessment
         """
-        For every major key in the master table (Stack) the make function will run, once for every unique stack.
+         
+    @schema
+    class Virus(dj.Manual):
+        definition = """
+        virus_id  : varchar(20)
+        ---
+        type                      : enum("", "Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis")
+        active = NULL             : enum("", "no")
+        type_details = NULL       : varchar(500)
+        titer = 0                 : float # (particles/ml) if applicable 
+        lot_number                : varchar(20)
+        label                     : enum("", "YFP", "GFP", "RFP", "histo-tag") 
+        label2                    : varchar(200)
+        excitation_wavelength = 0 : int # (nm) if applicable
+        excitation_range = 0      : int # (nm) if applicable
+        dichroic_cut = 0          : int # (nm) if applicable
+        emission_wavelength = 0   : int # (nm) if applicable
+        emission_range = 0        : int # (nm) if applicable
+        source                    : enum("", "Adgene", "Salk", "Penn", "UNC")
+        source_details            : varchar(100)
+        comments = NULL           : varchar(2000) # assessment # 
         """
-        slice_make_function(self, key)
         
+    @schema
+    class OrganicLabel(dj.Manual):
+        definition = """
+        label_id                  : varchar(20)
+        ---
+        type                      : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+        type_lot_number = NULL    : varchar(20)
+        type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
+        type_details = NULL       : varchar(500)
+        concentration = 0         : float # (µM) if applicable
+        excitation_wavelength = 0 : int # (nm)
+        excitation_range = 0      : int # (nm)
+        dichroic_cut = 0          : int # (nm)
+        emission_wavelength = 0   : int # (nm)
+        emission_range = 0        : int # (nm)
+        source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
+        souce_details = NULL      : varchar(100)
+        comments = NULL           : varchar(2000) # assessment
+        """
+    
+    @schema
+    class Injection(dj.Manual):
+        definition = """
+        -> Animal
+        ---
+        -> Virus 
+        -> OrganicLabel
+        performance_center    : enum("", "CSHL", "Salk", "UCSD", "HHMI")
+        anesthesia            : enum("", "ketamine", "isoflurane")
+        method                : enum("", "iontophoresis", "pressure", "volume")
+        injection_volume = 0  : float # (nL)
+        pipet                 : enum("", "glass", "quartz", "Hamilton", "syringe needle")
+        location = NULL       : varchar(20) # examples: muscle, brain region
+        brain_location_dv = 0 : float # (mm) dorsal-ventral relative to Bregma
+        brain_location_ml = 0 : float # (mm) medial-lateral relative to Bregma; check if positive
+        brain_location_ap = 0 : float # (mm) anterior-posterior relative to Bregma
+        date                  : date
+        comments = NULL       : varchar(2001) # assessment
+        """
+    
+    @schema
+    class Histology(dj.Manual):
+        definition = """
+        -> Animal
+        ---
+        -> Virus # = null
+        -> OrganicLabel # = null
+        performance_center            : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Injection
+        anesthesia                    : enum("", "ketamine", "isoflurane", "pentobarbital", "fatal plus")
+        perfusion_age_in_days         : tinyint unsigned
+        perfusion_date                : date
+        exsangination_method          : enum("", "PBS", "aCSF", "Ringers")
+        fixative_method               : enum("", "Para", "Glut", "Post fix") 
+        special_perfusion_notes = NULL: varchar(200)
+        post_fixation_period = 0      : tinyint unsigned # (days)
+        whole_brain                   : enum("Y", "N")
+        block = NULL                  : varchar(200) # if applicable
+        date_sectioned                : date
+        sectioning_method             : enum("", "cryoJane", "cryostat", "vibratome", "optical", "sliding microtiome")
+        section_thickness = 20        : tinyint unsigned # (µm)
+        orientation                   : enum("coronal", "horizontal", "sagittal", "oblique")
+        oblique_notes = NULL          : varchar(200)
+        mounting                      : enum("every section", "2nd", "3rd", "4th", "5ft", "6th") # used to automatically populate Placeholder
+        counterstain                  : enum("", "thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
+        comments                      : varchar(2001) # assessment
+        """
+    
+    @schema 
+    class ScanRun(dj.Manual):
+        definition = """
+        scan_id                : int                            
+        -> Animal # currently assumes tissue from a single animals on each slide
+        ---
+        performance_center     : enum("", "CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
+        machine                : enum("", "Zeiss", "Axioscan", "Nanozoomer","Olympus VA")
+        objective              : enum("60X", "40X", "20X", "10X")
+        resolution = 0         : float # (µm) lateral resolution if available
+        number_of_slides       : int
+        scan_date              : date
+        file_type              : enum("CZI", "JPEG2000", "NDPI", "NGR")
+        scenes_per_slide       : enum("1", "2", "3", "4", "5", "6")
+        section_scmema         : enum("L to R", "R to L") # agreement is one row
+        channels_per_scene     : enum("1", "2", "3", "4")
+        slide_folder_path      : varchar(200) # the path to the slides folder on birdstore (files to be converted)
+        converted_folder_path  : varchar(200) # the path to the slides folder on birdstore after convertion
+        ch_1_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50") # This is counterstain Channel
+        ch_2_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
+        ch_3_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
+        ch_4_filter_set        : enum("", "68", "47", "38", "46", "63", "64", "50")
+        comments = NULL        : varchar(2001) # assessment
+        """
+    
+    @schema
+    class Slides(dj.Imported): # prior to segregation of animals and scenes on each slide
+        definition = """
+        slide_physical_id : int                                               # one per slide
+        -> ScanRun
+        rescan_number     : enum("", "1", "2", "3")
+        ---
+        scene_qc_1        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
+        scene_qc_2        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
+        scene_qc_3        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+        scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+        scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+        scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
+        path = NULL       : varchar(200) # example: DK43_slide 002_ 2020_1_16_8976.czi
+        comments = NULL   : varchar(2001) # assessment
+        """
+        
+        def make(self, key):
+            scan_run = (ScanRun & key).fetch(as_dict=True)[0]
+            folder_path = scan_run['folder_path']
+            
+            for slide_name in os.listdir(birdstore_path + folder_path):
+                new_key = key.copy()
+                new_key['prep_id'] = key['prep_id']
+                new_key['scan_id'] = key['scan_id']
+                new_key['slide_physical_id'] = re.findall("\d+", slide_name.split('_')[1])[0]
+                new_key['rescan_number'] = ''
+                new_key['scene_qc_1'] = ''
+                new_key['scene_qc_2'] = ''
+                new_key['scene_qc_3'] = ''
+                new_key['scene_qc_4'] = ''
+                new_key['scene_qc_5'] = ''
+                new_key['scene_qc_6'] = ''
+                new_key['path'] = birdstore_path + folder_path + '/' + slide_name
+                new_key['comments'] = ''
+                self.insert1(new_key)
+            
+    @schema
+    class Slides_CZI_to_TIF(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
+        definition="""
+        -> Slides
+        -> ScanRun
+        -> Animal
+        ----------------
+        slide_number    : int
+        scan_date       : date
+        scene_number    : tinyint
+        channel         : tinyint
+        scanner_counter : int
+        comments = NULL : varchar(2000) # assessment
+        converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
+           # DK39 is the animal name (added by renaming file)
+           # slide067 refers to physical slide 67 (added by renaming file)
+           # 2020_01_02 is the scan date (imposed by scanner)
+           # 8271 is the counter (imposed by scanner)
+           # CZI is the file type (imposed by machine)
+           # S10 is the scene number (imposed by BioFormats converter; monotonically increasing by not contiguous number)
+           # C01 is the channel number (imposed by BioFormats converter)
+           """
+        
+        def make(self, key):
+            print('SlidesTIFF:', key)
+    
+    @schema
+    class Section(dj.Imported):
+        definition="""
+        -> Animal
+        section_number : int
+        ---
+        section_qc      : enum("OK","Missing", "Replace")
+        ch_1_path       : varchar(200) # Populate from converted Slides and Slides_TIFF
+        ch_2_path       : varchar(200)           
+        ch_3_path       : varchar(200) 
+        ch_4_path       : varchar(200)
+        comments = NULL : varchar(2000) # assessment
+        """
+    
+    @schema
+    class Processed_section(dj.Imported): #these hold uncropped Tiffs after Section-to-Section alignment ready to be converted for Neuroglancer (Steps 1-5 of current Preprocessing steps)
+        definition="""
+        -> Section
+        ---
+        mask_path            : varchar(200)          
+        ch_1_normalized_path : varchar(200)  # populate after making histogram normalized and inverted NeuroTrace data
+        ch_1_afine_path      : varchar(200)  # Populate from converted Slides and Slides_TIFF after inversion, orientation and translation
+        ch_2_afine_path      : varchar(200)           
+        ch_3_afine_path      : varchar(200) 
+        ch_4_afine_path      : varchar(200)
+        comments = NULL      : varchar(2000) # assessments
+        """
+        
+    return schema
