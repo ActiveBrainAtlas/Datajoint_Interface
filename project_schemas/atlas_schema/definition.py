@@ -60,9 +60,11 @@ class Virus(dj.Manual):
     lot_number            : varchar(20)
     label                 : enum("", "YFP", "GFP", "RFP", "histo-tag") 
     label2                : varchar(200)
-    excitation_wavelength = 0  : int           # (nm) if applicable
-    excitation_range = 0       : int           # (nm) if applicable
-    dichroic_cut  = 0          : int           # (nm) if applicable
+    1P_excitation_wavelength = 0  : int           # (nm) if applicable
+    1P_excitation_range = 0       : int           # (nm) if applicable
+    2P_excitation_wavelength = 0  : int           # (nm) if applicable
+    2P_excitation_range = 0       : int           # (nm) if applicable
+    LP_dichroic_cut  = 0          : int           # (nm) if applicable
     emission_wavelength = 0    : int           # (nm) if applicable
     emission_range  = 0        : int           # (nm) if applicable0
     source                : enum("", "Adgene", "Salk", "Penn", "UNC")
@@ -80,9 +82,11 @@ class OrganicLabel(dj.Manual):
     type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
     type_details = NULL       : varchar(500)
     concentration (µM) = 0    : float # if applicable
-    excitation_wavelength = 0 : int # (nm)
-    excitation_range = 0      : int # (nm)
-    dichroic_cut = 0          : int # (nm)
+    1P_excitation_wavelength = 0 : int # (nm)
+    1P_excitation_range = 0      : int # (nm)
+    2P_excitation_wavelength = 0 : int # (nm)
+    2P_excitation_range = 0      : int # (nm)
+    LP_dichroic_cut = 0          : int # (nm)
     emission_wavelength = 0   : int # (nm)
     emission_range = 0        : int # (nm)
     source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
