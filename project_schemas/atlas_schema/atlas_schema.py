@@ -49,14 +49,16 @@ def get_schema(credential):
         lot_number                : varchar(20)
         label                     : enum("", "YFP", "GFP", "RFP", "histo-tag") 
         label2                    : varchar(200)
-        excitation_wavelength = 0 : int # (nm) if applicable
-        excitation_range = 0      : int # (nm) if applicable
-        dichroic_cut = 0          : int # (nm) if applicable
-        emission_wavelength = 0   : int # (nm) if applicable
-        emission_range = 0        : int # (nm) if applicable
-        source                    : enum("", "Adgene", "Salk", "Penn", "UNC")
-        source_details            : varchar(100)
-        comments = NULL           : varchar(2000) # assessment # 
+        1P_excitation_wavelength = 0  : int           # (nm) if applicable
+        1P_excitation_range = 0       : int           # (nm) if applicable
+        2P_excitation_wavelength = 0  : int           # (nm) if applicable
+        2P_excitation_range = 0       : int           # (nm) if applicable
+        LP_dichroic_cut  = 0          : int           # (nm) if applicable
+        emission_wavelength = 0    : int           # (nm) if applicable
+        emission_range  = 0        : int           # (nm) if applicable0
+        source                : enum("", "Adgene", "Salk", "Penn", "UNC")
+        source_details        : varchar(100)
+        comments = NULL       : varchar(2000) # assessment    
         """
         
     @schema
@@ -69,9 +71,11 @@ def get_schema(credential):
         type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
         type_details = NULL       : varchar(500)
         concentration = 0         : float # (µM) if applicable
-        excitation_wavelength = 0 : int # (nm)
-        excitation_range = 0      : int # (nm)
-        dichroic_cut = 0          : int # (nm)
+        1P_excitation_wavelength = 0 : int # (nm)
+        1P_excitation_range = 0      : int # (nm)
+        2P_excitation_wavelength = 0 : int # (nm)
+        2P_excitation_range = 0      : int # (nm)
+        LP_dichroic_cut = 0          : int # (nm)
         emission_wavelength = 0   : int # (nm)
         emission_range = 0        : int # (nm)
         source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
@@ -164,7 +168,7 @@ def get_schema(credential):
         scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
         scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
-        path = NULL       : varchar(200) # example: DK43_slide 002_ 2020_1_16_8976.czi
+        slides_path = NULL  : varchar(200)               # folder on Birdstore
         comments = NULL   : varchar(2001) # assessment
         """
         
@@ -184,12 +188,12 @@ def get_schema(credential):
                 new_key['scene_qc_4'] = ''
                 new_key['scene_qc_5'] = ''
                 new_key['scene_qc_6'] = ''
-                new_key['path'] = birdstore_path + folder_path + '/' + slide_name
+                new_key['slides_path'] = birdstore_path + folder_path + '/' + slide_name
                 new_key['comments'] = ''
                 self.insert1(new_key)
             
     @schema
-    class Slides_CZI_to_TIF(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
+    class Slides_czi_to_tif(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
         definition="""
         -> Slides
         -> ScanRun
