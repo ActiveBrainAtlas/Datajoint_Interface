@@ -18,8 +18,8 @@ for scan_run in scan_runs:
         continue
     
     # Get input and output folder path
-    slide_folder_path = scanRun['slide_folder_path']
-    converted_folder_path = scanRun['converted_folder_path']
+    slide_folder_path = scan_run['slide_folder_path']
+    converted_folder_path = scan_run['converted_folder_path']
     input_path = birdstore_path + slide_folder_path
     output_path = birdstore_path + converted_folder_path
     
