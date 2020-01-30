@@ -42,6 +42,28 @@ class Animal(dj.Manual):
     aliases_5 = NULL       : varchar(100)
     comments = NULL        : varchar(2001) # assessment
     """
+    
+@schema
+class OrganicLabel(dj.Manual):
+    definition = """
+    label_id                  : varchar(20)
+    ---
+    type                      : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
+    type_lot_number = NULL    : varchar(20)
+    type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
+    type_details = NULL       : varchar(500)
+    concentration = 0         : float # (µM) if applicable
+    excitation_1p_wavelength = 0 : int # (nm)
+    excitation_1p_range = 0      : int # (nm)
+    excitation_2p_wavelength = 0 : int # (nm)
+    excitation_2p_range = 0      : int # (nm)
+    lp_dichroic_cut = 0          : int # (nm)
+    emission_wavelength = 0   : int # (nm)
+    emission_range = 0        : int # (nm)
+    source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
+    souce_details = NULL      : varchar(100)
+    comments = NULL           : varchar(2000) # assessment
+    """
 
 @schema
 class Virus(dj.Manual):
@@ -68,33 +90,11 @@ class Virus(dj.Manual):
     """
 
 @schema
-class OrganicLabel(dj.Manual):
-    definition = """
-    label_id                  : varchar(20)
-    ---
-    type                      : enum("", "Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR")
-    type_lot_number = NULL    : varchar(20)
-    type_tracer               : enum("", "BDA", "Dextran", "FluoroGold", "DiI", "DiO")
-    type_details = NULL       : varchar(500)
-    concentration = 0         : float # (µM) if applicable
-    excitation_1p_wavelength = 0 : int # (nm)
-    excitation_1p_range = 0      : int # (nm)
-    excitation_2p_wavelength = 0 : int # (nm)
-    excitation_2p_range = 0      : int # (nm)
-    lp_dichroic_cut = 0          : int # (nm)
-    emission_wavelength = 0   : int # (nm)
-    emission_range = 0        : int # (nm)
-    source                    : enum("",  "Invitrogen", "Sigma", "Thermo-Fisher")
-    souce_details = NULL      : varchar(100)
-    comments = NULL           : varchar(2000) # assessment
-    """
-
-@schema
 class Injection(dj.Manual):
     definition = """
+    injection_id          : int
     -> Animal
     ---
-    -> Virus 
     -> OrganicLabel
     performance_center    : enum("", "CSHL", "Salk", "UCSD", "HHMI", "Duke")
     anesthesia            : enum("", "ketamine", "isoflurane")
@@ -112,6 +112,14 @@ class Injection(dj.Manual):
     comments = NULL       : varchar(2001) # assessment
     """
 
+@schema 
+class InjectionVirus(dj.Manual):
+    definition ="""
+    -> Injection
+    -> Virus
+    ---
+    """
+    
 @schema
 class Histology(dj.Manual):
     definition = """
@@ -153,7 +161,7 @@ class ScanRun(dj.Manual):
     scan_date              : date
     file_type              : enum("CZI", "JPEG2000", "NDPI", "NGR")
     scenes_per_slide       : enum("1", "2", "3", "4", "5", "6")
-    section_scmema         : enum("L to R", "R to L") # agreement is one row
+    section_schema         : enum("L to R", "R to L") # agreement is one row
     channels_per_scene     : enum("1", "2", "3", "4")
     slide_folder_path      : varchar(200) # the path to the slides folder on birdstore (files to be converted)
     converted_folder_path  : varchar(200) # the path to the slides folder on birdstore after convertion
@@ -185,9 +193,9 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
 @schema
 class Slides_czi_to_tif(dj.Imported): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
     definition="""
-    -> Slides
+    slides_czi_to_tif_id : int
+    converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
     -> ScanRun
-    -> Animal
     ----------------
     slide_number    : int
     scan_date       : date
@@ -195,7 +203,6 @@ class Slides_czi_to_tif(dj.Imported): # Used to populate sections after Bioconve
     channel         : tinyint
     scanner_counter : int
     comments = NULL : varchar(2000) # assessment
-    converted_path  : varchar(200) # example: DK39_slide067_2020_01_02_8271.CZI_S10_C01.tif from bioformat coverter
        # DK39 is the animal name (added by renaming file)
        # slide067 refers to physical slide 67 (added by renaming file)
        # 2020_01_02 is the scan date (imposed by scanner)
