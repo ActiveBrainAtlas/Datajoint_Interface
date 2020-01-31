@@ -3,6 +3,7 @@ import os
 import atlas_schema
 import pandas as pd
 import inspect
+from tqdm import tqdm
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -48,7 +49,7 @@ for prep_id in animals:
     print(prep_id, end='...')
     writer = pd.ExcelWriter(PATH + '/' + prep_id + '.xlsx', engine='xlsxwriter')
 
-    for table_name, table in inspect.getmembers(atlas_schema, inspect.isclass):
+    for table_name, table in tqdm(inspect.getmembers(atlas_schema, inspect.isclass)):
         try:
             rows = pd.DataFrame((table & ('prep_id = ' + f'"{prep_id}"')).fetch())
         except: 
