@@ -66,5 +66,8 @@ for r in range(1, animal.nrows):
     session.merge(new_animal)
     
 session.commit()
+
+for animal in session.query(Animal).all():
+    print(animal.__dict__)
         
         
