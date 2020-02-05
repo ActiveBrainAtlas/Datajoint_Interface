@@ -27,6 +27,21 @@ class Animal(Base):
     aliases_5 = Column(String)
     comments = Column(String)
 
-    
     def __repr__(self):
-        return "<Animal(pre_id='%s', species='%s'" % (self.prep_id, self.species)
+        return "Animal(pre_id='%s' is a species='%s'" % (self.prep_id, self.species)
+    
+    
+
+virus_injection = Table('virus_injection', Base.metadata,
+    Column('injection_id', Integer, ForeignKey('injection.injection_id')),
+    Column('virus_id', Integer, ForeignKey('virus.virus_id'))
+)
+
+class Injection(Base):
+    __tablename__ = 'injection'
+    injection_id = Column(Integer, primary_key=True)
+    viruses = relationship("Virus", secondary=virus_injection)
+
+class Virus(Base):
+    __tablename__ = 'virus'
+    virus_id = Column(Integer, primary_key=True)
