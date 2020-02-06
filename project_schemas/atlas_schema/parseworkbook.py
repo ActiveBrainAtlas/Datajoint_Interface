@@ -4,7 +4,7 @@ import xlrd
 import yaml
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from atlas_classes import Animal
+from atlas_classes import Animal, Virus, Injection, ScanRun
 
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)
@@ -64,10 +64,40 @@ for r in range(1, animal.nrows):
     new_animal.comments =  animal.cell(r,19).value
     
     session.merge(new_animal)
+
+
+for r in range(1, virus.nrows):
+    new_virus = Virus()
+    
+    new_virus.virus_id = virus.cell(r,0).value
+    new_virus.type = virus.cell(r,1).value
+    new_virus.active = virus.cell(r,2).value
+    new_virus.type_details = virus.cell(r,3).value
+    new_virus.titer = virus.cell(r,4).value
+    new_virus.lot_number = virus.cell(r,5).value
+    new_virus.label = virus.cell(r,6).value
+    new_virus.label2 = virus.cell(r,7).value
+    new_virus.excitation_1p_wavelength = virus.cell(r,8).value
+    new_virus.excitation_1p_range = virus.cell(r,9).value
+    new_virus.excitation_2p_wavelength = virus.cell(r,10).value
+    new_virus.excitation_2p_range = virus.cell(r,11).value
+    new_virus.lp_dichroic_cut = virus.cell(r,12).value
+    new_virus.emission_wavelength = virus.cell(r,13).value
+    new_virus.emission_range = virus.cell(r,14).value
+    new_virus.source = virus.cell(r,15).value
+    new_virus.source_details = virus.cell(r,16).value
+    new_virus.comments = virus.cell(r,17).value
+
+    session.merge(new_virus)
+
     
 session.commit()
 
-for animal in session.query(Animal).all():
-    print(animal.__dict__)
-        
-        
+for object in session.query(Virus).all():
+    #print(repr())
+    for k,v in object.__dict__.items():
+        print("{}: {}".format(k,v))
+     
+
+
+session.close_all()
