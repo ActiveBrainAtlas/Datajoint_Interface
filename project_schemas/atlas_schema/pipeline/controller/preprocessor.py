@@ -1,4 +1,5 @@
 from model.slide import Slide
+from model.slide_czi_tif import SlideCziTif
 import os, sys, subprocess, time
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 
@@ -29,7 +30,8 @@ class SlidesProcessor(object):
         self.animal = animal
         self.scan_ids = [scan.id for scan in self.animal.scan_runs]
         self.slides = session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
-        self.czi_files = [slide.slides_path for slide in self.slides]
+        self.czi_files = [slide.file_name for slide in self.slides]
+        self.slides_ids = []
         self.session = session
         
         
@@ -37,7 +39,7 @@ class SlidesProcessor(object):
         
         scan_id = max(self.scan_ids)
         
-        stmt = Slide.__table__.delete().where(Slide.scan_run_id == scan_id)
+        Slide.__table__.delete().where(Slide.scan_run_id == scan_id)
         self.session.commit()
         
         INPUT = os.path.join(DATA_ROOT, self.brain, CZI)
@@ -55,11 +57,35 @@ class SlidesProcessor(object):
         for i, file in enumerate(files):
             slide = Slide()
             slide.scan_run_id = max(self.scan_ids)
-            slide.slides_path = file
+            slide.file_name = file
             slide.slide_physical_id = i
             slide.processed = False
             slide.file_size = os.path.getsize(os.path.join(INPUT, file))
             self.session.merge(slide)
+        self.session.commit()
+
+        
+    def update_tif_data(self):
+        
+        #SlideCziTif.__table__.delete().where(Slide.scan_run_id == scan_id)
+        #self.session.commit()
+        
+        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        try:
+            os.listdir(INPUT)
+        except OSError as e:
+            print(e)
+            sys.exit()
+        try:
+            files = os.listdir(INPUT)
+        except OSError as e:
+            print(e)
+            sys.exit()
+            
+        for slide in self.slides:
+            for tif in slide.slidesCziTifs:
+                tif.file_size = os.path.getsize(os.path.join(INPUT, tif.file_name))
+                self.session.merge(tif)
         self.session.commit()
         
     def process_czi(self):
@@ -89,7 +115,7 @@ class SlidesProcessor(object):
                 
         for slide in self.slides:
             start = time.time()
-            czi_file = os.path.join(INPUT, slide.slides_path)
+            czi_file = os.path.join(INPUT, slide.file_name)
             metadata_dict = get_czi_metadata(czi_file)
             #print(metadata_dict)
             #print()
@@ -98,8 +124,8 @@ class SlidesProcessor(object):
                 iterative_section_num = series.index( series_index )
                 for channel in range(metadata_dict[iterative_section_num]['channels']):                
                     procs = []
-                    newtif = os.path.splitext(slide.slides_path)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(slide.slides_path, iterative_section_num, channel)
+                    newtif = os.path.splitext(slide.file_name)[0]
+                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, iterative_section_num, channel)
                     newtif = newtif.replace('.czi','')
                     tif_file = os.path.join(OUTPUT, newtif)
                 
@@ -109,6 +135,15 @@ class SlidesProcessor(object):
                     #print(cli)
                     proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
                     procs.append(proc)
+                    tif = SlideCziTif()
+                    tif.slide_id = slide.id
+                    tif.scene_number = series_index 
+                    tif.channel = channel
+                    tif.file_name = newtif
+                    tif.file_size = 0
+                    tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
+                    self.session.merge(tif)
+ 
             proc = procs[0]
             proc.wait()
             print('Finished proc.')
@@ -117,6 +152,7 @@ class SlidesProcessor(object):
             slide.processing_duration = end - start
             self.session.merge(slide)
         self.session.commit()
+        self.update_tif_data()
             
                     
     def scale_tiff(self, channel):
