@@ -80,10 +80,7 @@ class SlidesProcessor(object):
         except OSError as e:
             print(e)
             sys.exit()
-        
-        if len(files_in_dir) != len(self.czi_files):
-            self.insert_czi_data()
-        
+                
         self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
                 
         for slide in self.slides:
@@ -106,8 +103,6 @@ class SlidesProcessor(object):
                               '-series', str(series_index), '-channel', str(channel), '-nooverwrite', czi_file, tif_file]
                     #cli = " ".join(command)
                     #print(cli)
-                
-                    subprocess.call(command)
                     proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
                     procs.append(proc)
             proc = procs[0]
