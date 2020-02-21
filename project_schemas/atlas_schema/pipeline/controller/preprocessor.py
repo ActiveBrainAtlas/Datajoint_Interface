@@ -1,6 +1,6 @@
 from model.slide import Slide
 import os, sys, subprocess, time
-from .a_bioformats_utilities import get_czi_metadata, get_fullres_series_indices
+from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 
 
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
@@ -63,6 +63,10 @@ class SlidesProcessor(object):
         self.session.commit()
         
     def process_czi(self):
+        """
+        CZI to Tiff - LZW compression. Controls are about the same size Tiff as CZI (factor of 1 or 2). 
+        Add feedback to user after Big Table is populated.
+        """
         INPUT = os.path.join(DATA_ROOT, self.brain, CZI)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         try:
@@ -115,17 +119,36 @@ class SlidesProcessor(object):
         self.session.commit()
             
                     
-    def process_tiff(self, channel):
+    def scale_tiff(self, channel):
+        """
+        Make downsampled images
+        Add the ability to view each Tiff as a thumbnail in a table by clicking on name of Tiff file.
+        """
         pass
     
-    def rotate_tiff(self):
+    def process_counterstatin(self):
+        """
+        To counterstained sections - Channel 1
+        Linear normalization
+        Section-to-section
+        Make, inspect and change Masks
+        Adaptive normalization
+        Gamma inversion (optional)
+        """
         pass
     
-    def normalize_tiff(self):
+    def process_other_channels(self):
+        """
+        To labeled sections - Channel 2,3,4
+        Set intensity values < min to 0.5 and to > max to 0.5.
+        Take logarithm
+        Linear Stretch from 0 to 255
+        """
         pass
     
-    def align_tiff(self):
-        pass
-    
+
     def precompute_tiffs(self):
+        """
+        Get tiffs ready for neuroglancer
+        """
         pass

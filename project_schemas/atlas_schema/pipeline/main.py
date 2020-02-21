@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from model.animal import Animal
 import sys
-from controller.process_animal import SlidesProcessor
+from controller.preprocessor import SlidesProcessor
 
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)

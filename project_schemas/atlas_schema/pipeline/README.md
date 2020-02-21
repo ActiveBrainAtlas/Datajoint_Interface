@@ -10,7 +10,8 @@ finished, the remaining steps can be put in this pipeline.
 # This version of the pipeline depends on a strict file structure
 within the birdstore NFS filesystem. Each animal will have it's own
 directory structure. The prep_id will be the name of the parent
-directory. An example is below:
+directory.
+
 ![Directory structure](pipeline.birdstore.png)
 
 
