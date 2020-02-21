@@ -28,6 +28,7 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slides_processor = SlidesProcessor(animal, session)
+    #slides_processor.insert_czi_data()
     slides_processor.process_czi()
         
     

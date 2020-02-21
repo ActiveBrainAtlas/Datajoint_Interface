@@ -1,5 +1,5 @@
 from model.slide import Slide
-import os, sys, subprocess
+import os, sys, subprocess, time
 from .a_bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 
 
@@ -57,6 +57,8 @@ class SlidesProcessor(object):
             slide.scan_run_id = max(self.scan_ids)
             slide.slides_path = file
             slide.slide_physical_id = i
+            slide.processed = False
+            slide.file_size = os.path.getsize(os.path.join(INPUT, file))
             self.session.merge(slide)
         self.session.commit()
         
@@ -82,37 +84,40 @@ class SlidesProcessor(object):
         if len(files_in_dir) != len(self.czi_files):
             self.insert_czi_data()
         
-        
-        
-        channels = ['0','1','2']
-        self.czi_files = ['DK43_slide001_2020_01_27__8081.czi']
-        for file in self.czi_files:
-            czi_file = os.path.join(INPUT, file)
+        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
+                
+        for slide in self.slides:
+            start = time.time()
+            czi_file = os.path.join(INPUT, slide.slides_path)
             metadata_dict = get_czi_metadata(czi_file)
             #print(metadata_dict)
             #print()
-            fullres_series_indices = get_fullres_series_indices(metadata_dict)
-            print('fullres_series_indices', fullres_series_indices)
-            for ii, series_index in enumerate(fullres_series_indices):
-                iterative_section_num = fullres_series_indices.index( series_index )
+            series = get_fullres_series_indices(metadata_dict)
+            for j, series_index in enumerate(series):
+                iterative_section_num = series.index( series_index )
                 for channel in range(metadata_dict[iterative_section_num]['channels']):                
                     procs = []
-                    newtif = os.path.splitext(file)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(file, iterative_section_num, channel)
+                    newtif = os.path.splitext(slide.slides_path)[0]
+                    newtif = '{}_S{}_C{}.tif'.format(slide.slides_path, iterative_section_num, channel)
                     newtif = newtif.replace('.czi','')
                     tif_file = os.path.join(OUTPUT, newtif)
                 
                     command = ['/usr/local/share/bftools/bfconvert', '-bigtiff', '-compression', 'LZW', '-separate', 
-                              '-series', str(iterative_section_num), '-channel', str(channel), czi_file, tif_file]
-                    cli = " ".join(command)
-                    print(cli)
+                              '-series', str(series_index), '-channel', str(channel), '-nooverwrite', czi_file, tif_file]
+                    #cli = " ".join(command)
+                    #print(cli)
                 
                     subprocess.call(command)
                     proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
                     procs.append(proc)
-                proc = procs[-1]
-                proc.wait()
-                print('Waiting for proc.')
+            proc = procs[0]
+            proc.wait()
+            print('Finished proc.')
+            end = time.time()
+            slide.processed  = True
+            slide.processing_duration = end - start
+            self.session.merge(slide)
+        self.session.commit()
             
                     
     def process_tiff(self, channel):
