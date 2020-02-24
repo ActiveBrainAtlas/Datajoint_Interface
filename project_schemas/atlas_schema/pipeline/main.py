@@ -30,6 +30,7 @@ def fetch_and_run(prep_id):
     slides_processor = SlidesProcessor(animal, session)
     #slides_processor.insert_czi_data()
     slides_processor.process_czi()
+    slides_processor.linear_norm_counterstain()
         
     
 if __name__ == '__main__':

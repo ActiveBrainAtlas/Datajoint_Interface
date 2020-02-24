@@ -32,6 +32,7 @@ class SlidesProcessor(object):
         self.slides = session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
         self.czi_files = [slide.file_name for slide in self.slides]
         self.slides_ids = []
+        self.counter_stains = []
         self.session = session
         
         
@@ -144,7 +145,7 @@ class SlidesProcessor(object):
                     tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
                     self.session.merge(tif)
  
-            proc = procs[0]
+            proc = procs[-1]
             proc.wait()
             print('Finished proc.')
             end = time.time()
@@ -162,7 +163,7 @@ class SlidesProcessor(object):
         """
         pass
     
-    def process_counterstatin(self):
+    def linear_norm_counterstain(self):
         """
         To counterstained sections - Channel 1
         Linear normalization
@@ -171,7 +172,11 @@ class SlidesProcessor(object):
         Adaptive normalization
         Gamma inversion (optional)
         """
-        pass
+        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==True).all()
+        self.slides_ids = [slide.id for slide in self.slides]
+        self.counter_stains = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).filter(SlideCziTif.channel==0).all()
+        for counter_stain in self.counter_stains:
+            print(counter_stain.file_name)
     
     def process_other_channels(self):
         """
