@@ -1,6 +1,8 @@
 from model.slide import Slide
 from model.slide_czi_tif import SlideCziTif
 import os, sys, subprocess, time
+import cv2 as cv
+import numpy as np
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 
 
@@ -14,6 +16,7 @@ PRECOMPUTED = 'precomputed'
 PREPS = 'preps'
 ROTATED = 'rotated'
 SCALED = 'scaled'
+DEPTH8 = 'depth8'
 
 
 class SlidesProcessor(object):
@@ -163,6 +166,59 @@ class SlidesProcessor(object):
         """
         pass
     
+    def depth8(self):
+        """
+        To counterstained sections - Channel 1
+        Linear normalization
+        Section-to-section
+        Make, inspect and change Masks
+        Adaptive normalization
+        Gamma inversion (optional)
+        """
+        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
+        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+        self.slides_ids = [slide.id for slide in self.slides]
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).all()
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            output_tif = os.path.join(OUTPUT, tif.file_name)
+            print(input_tif)
+            command = ['/usr/bin/convert', '-depth', '8', input_tif, output_tif]
+            #cli = " ".join(command)
+            #print(cli)
+            proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
+            proc.wait()
+            
+        print('Finished procs.')
+    
+    def rotate_flip(self):
+        """
+        To counterstained sections - Channel 1
+        Linear normalization
+        Section-to-section
+        Make, inspect and change Masks
+        Adaptive normalization
+        Gamma inversion (optional)
+        """
+        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, ROTATED)
+        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+        self.slides_ids = [slide.id for slide in self.slides]
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).all()
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            output_tif = os.path.join(OUTPUT, tif.file_name)
+            print(input_tif)
+            
+            img = cv.imread(input_tif, cv.IMREAD_ANYDEPTH)
+            print(type(img))
+            img = np.rot90(img, 3)
+            img = np.flipud(img)
+            cv.imwrite(output_tif, img)
+            
+        print('Finished proc.')
+            
     def linear_norm_counterstain(self):
         """
         To counterstained sections - Channel 1
@@ -172,11 +228,21 @@ class SlidesProcessor(object):
         Adaptive normalization
         Gamma inversion (optional)
         """
+        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, NORMALIZED)
         self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==True).all()
         self.slides_ids = [slide.id for slide in self.slides]
         self.counter_stains = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).filter(SlideCziTif.channel==0).all()
         for counter_stain in self.counter_stains:
             print(counter_stain.file_name)
+            input_tif = os.path.join(INPUT, counter_stain.file_name)
+            output_tif = os.path.join(OUTPUT, counter_stain.file_name)
+            command = ['/usr/bin/convert', '-normalize', '-depth', '8', input_tif, output_tif]
+            #cli = " ".join(command)
+            #print(cli)
+            proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
+            proc.wait()
+            print('Finished proc.')
     
     def process_other_channels(self):
         """
