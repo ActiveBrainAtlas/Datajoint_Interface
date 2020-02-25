@@ -43,7 +43,7 @@ class SlidesProcessor(object):
         
         scan_id = max(self.scan_ids)
         
-        Slide.__table__.delete().where(Slide.scan_run_id == scan_id)
+        Slide.__table__.delete().where( Slide.scan_run_id.in_(self.scan_ids) )
         self.session.commit()
         
         INPUT = os.path.join(DATA_ROOT, self.brain, CZI)
@@ -65,6 +65,8 @@ class SlidesProcessor(object):
             slide.slide_physical_id = i
             slide.processed = False
             slide.file_size = os.path.getsize(os.path.join(INPUT, file))
+            slide.processing_duration = 0
+            slide.created = time.strftime('%Y-%m-%d %H:%M:%S')
             self.session.merge(slide)
         self.session.commit()
 
@@ -177,18 +179,19 @@ class SlidesProcessor(object):
         """
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
         self.slides_ids = [slide.id for slide in self.slides]
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).all()
+        print(self.scan_ids)
+        print(self.slides_ids)
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids))
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             output_tif = os.path.join(OUTPUT, tif.file_name)
-            print(input_tif)
             command = ['/usr/bin/convert', '-depth', '8', input_tif, output_tif]
-            #cli = " ".join(command)
-            #print(cli)
-            proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
-            proc.wait()
+            cli = " ".join(command)
+            print(cli)
+            #proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
+            #proc.wait()
             
         print('Finished procs.')
     
