@@ -95,7 +95,7 @@ class Injection(dj.Manual):
     injection_id              : int
     -> Animal
     ---
-    -> OrganicLabel
+    -> [nullable] OrganicLabel
     performance_center = NULL : enum("CSHL", "Salk", "UCSD", "HHMI", "Duke")
     anesthesia = NULL         : enum("ketamine", "isoflurane")
     method = NULL             : enum("iontophoresis", "pressure", "volume")
@@ -115,6 +115,7 @@ class Injection(dj.Manual):
 @schema 
 class InjectionVirus(dj.Manual):
     definition ="""
+    injection_virus_id : int
     -> Injection
     -> Virus
     ---
@@ -125,8 +126,8 @@ class Histology(dj.Manual):
     definition = """
     -> Animal
     ---
-    -> Virus
-    -> OrganicLabel
+    -> [nullable] Virus
+    -> [nullable] OrganicLabel
     performance_center = NULL      : enum("CSHL", "Salk", "UCSD", "HHMI") # default population is from Injection
     anesthesia = NULL              : enum("ketamine", "isoflurane", "pentobarbital", "fatal plus")
     perfusion_age_in_days = 0      : tinyint unsigned
@@ -144,7 +145,7 @@ class Histology(dj.Manual):
     oblique_notes = NULL           : varchar(200)
     mounting = NULL                : enum("every section", "2nd", "3rd", "4th", "5ft", "6th") # used to automatically populate Placeholder
     counterstain = NULL            : enum("thionon", "NtB", "NtFR", "DAPI", "Giemsa", "Syto41") # NtB = Neurotrace blue; NtFR = Neurotrace far red
-    comments                       : varchar(2001) # assessment
+    comments = NULL                : varchar(2001) # assessment
     """
 
 @schema 
@@ -180,12 +181,12 @@ class Slides(dj.Imported): # prior to segregation of animals and scenes on each 
     rescan_number     : enum("", "1", "2", "3")
     -> ScanRun
     ---
-    scene_qc_1        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
-    scene_qc_2        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
-    scene_qc_3        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_4        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_5        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
-    scene_qc_6        : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
+    scene_qc_1 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
+    scene_qc_2 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
+    scene_qc_3 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_4 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_5 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_6 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
     slides_path = NULL  : varchar(200)               # folder on Birdstore
     comments = NULL   : varchar(2001) # assessment
     """

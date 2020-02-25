@@ -27,7 +27,7 @@ session = DBSession()
 # Get the table definitions
 Base = automap_base()
 Base.prepare(engine, reflect=True)
-tables = {table_name.replace('_', ''): table for table_name, table in Base.classes.items()}
+tables = {''.join(word.title() for word in table_name.split('_')): table for table_name, table in Base.classes.items()}
     
 def upload_spreadsheet(xlsx):
     # For each table in the spreadsheet
@@ -35,27 +35,30 @@ def upload_spreadsheet(xlsx):
         # Read spreadsheet into dataframes
         spreadsheet = pd.read_excel(xlsx, sheet_name=table_name, dtype=object, parse_dates=True)
         
-        for column_name, column_default, column_type, column_value in table_defs:                            
-            # Fullfill the nan values in the spreadsheets
-            if spreadsheet[column_name].isnull().any():
-                if column_default is None:
-                    print(f'Error: the column [{column_name}] in table [{table_name}] contains null values')
-                    return
-                else:
-                    if column_default == 'null':
-                        column_default = None
-                    spreadsheet[column_name] = spreadsheet[column_name].where(pd.notnull(spreadsheet[column_name]), column_default)
-                    
         # Convert rows in the table to dicts
         dict_rows = spreadsheet.to_dict(orient='records')
         
         for dict_row in dict_rows:
             # Create sqlalchemy instance and insert/update to the database
-            new_row = tables[table_name.lower()]()
-            for key, value in dict_row.items():
+            new_row = tables[table_name]()
+            for (key, value), (column_name, column_default, column_type, column_value) in zip(dict_row.items(), table_defs):
+                # Fullfill the nan values in the spreadsheets
+                if pd.isnull(value):
+                    if column_default == 'null' or column_default is None:
+                        value = None
+                    else:
+                        value = column_default
+                        
                 # Convert pandas Timestamp to python datetime object
-                if type(value) is pd.Timestamp:
+                elif column_type == 'date':
                     value = value.to_pydatetime()
+                    
+                # Ensure that the enums are string type
+                elif column_type == 'enum':
+                    if type(value) is float:
+                        value = int(value)
+                    value = str(value)
+                    
                 setattr(new_row, key, value)
             session.merge(new_row)
     session.commit()

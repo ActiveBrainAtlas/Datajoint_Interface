@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Date
+from sqlalchemy import Column, String, Date, Enum
 from sqlalchemy.orm import relationship
 from .atlas_model import AtlasModel, Base
 from .scan_run import ScanRun
@@ -7,19 +7,19 @@ from .scan_run import ScanRun
 class Animal(Base, AtlasModel):
     __tablename__ = 'animal'
     
-    prep_id = Column(String)
-    performance_center = Column(String)
+    prep_id = Column(String, nullable=False)
+    performance_center = Column(Enum("CSHL", "Salk", "UCSD", "HHMI", "Duke"))
     date_of_birth = Column(Date)
-    species = Column(String)
+    species = Column(Enum("mouse", "rat"))
     strain = Column(String)
-    sex = Column(String)
+    sex = Column(Enum("M", "F"))
     genotype = Column(String)
     breeder_line = Column(String)
     vender = Column(String)
     stock_number = Column(String)
     tissue_source = Column(String)
     ship_date = Column(Date)
-    shipper = Column(String)
+    shipper = Column(Enum("FedEx", "UPS"))
     tracking_number = Column(String)
     aliases_1 = Column(String)
     aliases_2 = Column(String)
@@ -32,4 +32,4 @@ class Animal(Base, AtlasModel):
     
 
     def __repr__(self):
-        return "Animal(pre_id='%s' is a species='%s'" % (self.prep_id, self.species)
+        return "Animal(prep_id='%s' is a species='%s'" % (self.prep_id, self.species)
