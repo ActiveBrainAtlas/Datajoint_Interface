@@ -1,5 +1,5 @@
-from model.slide import Slide
-from model.slide_czi_tif import SlideCziTif
+from model.slides import Slides
+from model.slides_czi_to_tif import SlidesCziTif
 import os, sys, subprocess, time
 import cv2 as cv
 import numpy as np
@@ -32,7 +32,7 @@ class SlidesProcessor(object):
         self.brain = animal.prep_id
         self.animal = animal
         self.scan_ids = [scan.id for scan in self.animal.scan_runs]
-        self.slides = session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+        self.slides = session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids)).all()
         self.czi_files = [slide.file_name for slide in self.slides]
         self.slides_ids = []
         self.counter_stains = []
@@ -43,7 +43,7 @@ class SlidesProcessor(object):
         
         scan_id = max(self.scan_ids)
         
-        Slide.__table__.delete().where( Slide.scan_run_id.in_(self.scan_ids) )
+        Slides.__table__.delete().where( Slides.scan_run_id.in_(self.scan_ids) )
         self.session.commit()
         
         INPUT = os.path.join(DATA_ROOT, self.brain, CZI)
@@ -59,8 +59,9 @@ class SlidesProcessor(object):
             sys.exit()
             
         for i, file in enumerate(files):
-            slide = Slide()
+            slide = Slides()
             slide.scan_run_id = max(self.scan_ids)
+            slide.rescan_number = 1
             slide.file_name = file
             slide.slide_physical_id = i
             slide.processed = False
@@ -73,7 +74,7 @@ class SlidesProcessor(object):
         
     def update_tif_data(self):
         
-        #SlideCziTif.__table__.delete().where(Slide.scan_run_id == scan_id)
+        #SlidesCziTif.__table__.delete().where(Slides.scan_run_id == scan_id)
         #self.session.commit()
         
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
@@ -117,7 +118,7 @@ class SlidesProcessor(object):
             print(e)
             sys.exit()
                 
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
+        self.slides = self.session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids)).filter(Slides.processed==False).all()
                 
         for slide in self.slides:
             start = time.time()
@@ -126,12 +127,16 @@ class SlidesProcessor(object):
             #print(metadata_dict)
             #print()
             series = get_fullres_series_indices(metadata_dict)
+            #print(series)
+            
             for j, series_index in enumerate(series):
-                iterative_section_num = series.index( series_index )
-                for channel in range(metadata_dict[iterative_section_num]['channels']):                
+                scene_number = series.index( series_index )
+                channels = range(metadata_dict[scene_number]['channels'])
+                #print(metadata_dict[scene_number]['channels'])
+                for channel in channels:                
                     procs = []
                     newtif = os.path.splitext(slide.file_name)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, iterative_section_num, channel)
+                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, scene_number, channel)
                     newtif = newtif.replace('.czi','')
                     tif_file = os.path.join(OUTPUT, newtif)
                 
@@ -141,7 +146,7 @@ class SlidesProcessor(object):
                     #print(cli)
                     proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
                     procs.append(proc)
-                    tif = SlideCziTif()
+                    tif = SlidesCziTif()
                     tif.slide_id = slide.id
                     tif.scene_number = series_index 
                     tif.channel = channel
@@ -149,16 +154,17 @@ class SlidesProcessor(object):
                     tif.file_size = 0
                     tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
                     self.session.merge(tif)
- 
-            proc = procs[-1]
-            proc.wait()
-            print('Finished proc.')
+                proc = procs[-1]
+                proc.wait()
+                print('Finished proc.')
             end = time.time()
             slide.processed  = True
             slide.processing_duration = end - start
             self.session.merge(slide)
+            
         self.session.commit()
         self.update_tif_data()
+        
             
                     
     def scale_tiff(self, channel):
@@ -179,21 +185,21 @@ class SlidesProcessor(object):
         """
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        self.slides = self.session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids))
         self.slides_ids = [slide.id for slide in self.slides]
         print(self.scan_ids)
         print(self.slides_ids)
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids))
+        tifs = self.session.query(SlidesCziTif).filter(SlidesCziTif.slide_id.in_(self.slides_ids))
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             output_tif = os.path.join(OUTPUT, tif.file_name)
             command = ['/usr/bin/convert', '-depth', '8', input_tif, output_tif]
             cli = " ".join(command)
-            print(cli)
-            #proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
-            #proc.wait()
+            #print(cli)
+            proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
+            proc.wait()
             
-        print('Finished procs.')
+        print('Finished processing tifs to depth 8.')
     
     def rotate_flip(self):
         """
@@ -206,13 +212,13 @@ class SlidesProcessor(object):
         """
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, ROTATED)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+        self.slides = self.session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids)).all()
         self.slides_ids = [slide.id for slide in self.slides]
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).all()
+        tifs = self.session.query(SlidesCziTif).filter(SlidesCziTif.slide_id.in_(self.slides_ids)).all()
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             output_tif = os.path.join(OUTPUT, tif.file_name)
-            print(input_tif)
+            #print(input_tif)
             
             img = cv.imread(input_tif, cv.IMREAD_ANYDEPTH)
             print(type(img))
@@ -233,9 +239,9 @@ class SlidesProcessor(object):
         """
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, NORMALIZED)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==True).all()
+        self.slides = self.session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids)).filter(Slides.processed==True).all()
         self.slides_ids = [slide.id for slide in self.slides]
-        self.counter_stains = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).filter(SlideCziTif.channel==0).all()
+        self.counter_stains = self.session.query(SlidesCziTif).filter(SlidesCziTif.slide_id.in_(self.slides_ids)).filter(SlidesCziTif.channel==0).all()
         for counter_stain in self.counter_stains:
             print(counter_stain.file_name)
             input_tif = os.path.join(INPUT, counter_stain.file_name)

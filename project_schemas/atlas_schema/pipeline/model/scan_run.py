@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, Date, ForeignKey
+from sqlalchemy import Column, Integer, Date, ForeignKey, Enum, String, Float
 from sqlalchemy.orm import relationship
-from atlas_model import Base, AtlasModel
-from slide import Slide
+from .atlas_model import Base, AtlasModel
+from .slides import Slides
 
 
 class ScanRun(Base, AtlasModel):
@@ -28,7 +28,7 @@ class ScanRun(Base, AtlasModel):
     ch_4_filter_set = Column(Enum("68", "47", "38", "46", "63", "64", "50"))
     comments = Column(String)
 
-    slides = relationship('Slide', lazy=True)
+    slides = relationship('Slides', lazy=True)
     
     
     def __repr__(self):
