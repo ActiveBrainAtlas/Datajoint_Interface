@@ -30,3 +30,5 @@ mapping) design pattern
 This folder will house the python code to control the models. This is
 where the extraction, rotation, scaling, normalizing, et al will be
 placed.
+# views
+The GUI programs for aligning the images go here.
