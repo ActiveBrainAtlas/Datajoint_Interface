@@ -5,7 +5,8 @@ instead of datajoint as SqlAlchemy is a much more robust and versatile
 product. This pipeline will execute in a step by step fashion to
 preprocess the slides through to the alignment phase. This will need
 to be done outside of the pipeline in a GUI. After alignment is
-finished, the remaining steps can be put in this pipeline.
+finished, the remaining steps can be put in this pipeline. A list of the processes in the pipeline are here:
+[Pipeline Processes](https://github.com/ActiveBrainAtlas/Datajoint_Interface/wiki/Pipeline-Database-Integration)
 
 # This version of the pipeline depends on a strict file structure
 within the birdstore NFS filesystem. Each animal will have it's own
