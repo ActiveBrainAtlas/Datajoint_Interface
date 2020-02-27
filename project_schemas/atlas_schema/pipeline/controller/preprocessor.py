@@ -210,7 +210,7 @@ class SlidesProcessor(object):
         Adaptive normalization
         Gamma inversion (optional)
         """
-        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        INPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, ROTATED)
         self.slides = self.session.query(Slides).filter(Slides.scan_run_id.in_(self.scan_ids)).all()
         self.slides_ids = [slide.id for slide in self.slides]
