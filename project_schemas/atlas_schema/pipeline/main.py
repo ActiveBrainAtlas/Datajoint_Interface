@@ -31,7 +31,7 @@ def fetch_and_run(prep_id):
     #slides_processor.insert_czi_data()
     slides_processor.process_czi()
     #slides_processor.depth8()
-    #slides_processor.rotate_flip()
+    slides_processor.rotate_flip()
         
     
 if __name__ == '__main__':
