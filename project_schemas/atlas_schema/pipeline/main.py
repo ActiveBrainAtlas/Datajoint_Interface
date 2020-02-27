@@ -6,6 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from model.animal import Animal
 import sys
 from controller.preprocessor import SlideProcessor
+from controller.spreadsheet_utilities import upload_spreadsheet, download_spreadsheet
 
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)
@@ -33,7 +34,14 @@ def fetch_and_run(prep_id):
     #slides_processor.depth8()
     #slides_processor.rotate_flip()
     slide_processor.test_tables()
-        
+  
+  
+def download():
+    download_spreadsheet(prep_id, session, engine)      
+    
+    
+def upload():
+    download_spreadsheet(path, session, engine)      
     
 if __name__ == '__main__':
     # Parsing argument
