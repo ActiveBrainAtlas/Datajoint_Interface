@@ -6,6 +6,7 @@ from atlas_model import AtlasModel, Base
 class OrganicLabel(Base, AtlasModel):    
     __tablename__ = 'organic_label'
     
+    id =  Column(Integer, primary_key=True, nullable=False)
     label_id = Column(String, nullable=False)
     label_type = Column(Enum("Cascade Blue", "Chicago Blue", "Alexa405", "Alexa488", "Alexa647", "Cy2", "Cy3", "Cy5", "Cy5.5", "Cy7", "Fluorescein", "Rhodamine B", "Rhodamine 6G", "Texas Red", "TMR"))
     type_lot_number = Column(String)

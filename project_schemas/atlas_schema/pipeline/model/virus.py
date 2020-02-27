@@ -6,7 +6,8 @@ from atlas_model import AtlasModel, Base
 class Virus(Base, AtlasModel):    
     __tablename__ = 'virus'
     
-    virus_id = Column(String)
+    id =  Column(Integer, primary_key=True, nullable=False)
+    virus_name = Column(String)
     virus_type = Column(Enum("Adenovirus", "AAV", "CAV", "DG rabies", "G-pseudo-Lenti", "Herpes", "Lenti", "N2C rabies", "Sinbis"))
     active = Column(Enum("yes", "no"))
     type_details = Column(String)

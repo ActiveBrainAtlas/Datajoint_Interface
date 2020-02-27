@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from model.animal import Animal
 import sys
-from controller.preprocessor import SlidesProcessor
+from controller.preprocessor import SlideProcessor
 
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)
@@ -27,11 +27,12 @@ def fetch_and_run(prep_id):
         print('No results found for prep_id: {}.'.format(prep_id))
         sys.exit()
         
-    slides_processor = SlidesProcessor(animal, session)
+    slide_processor = SlideProcessor(animal, session)
     #slides_processor.insert_czi_data()
-    slides_processor.process_czi()
+    #slides_processor.process_czi()
     #slides_processor.depth8()
-    slides_processor.rotate_flip()
+    #slides_processor.rotate_flip()
+    slide_processor.test_tables()
         
     
 if __name__ == '__main__':

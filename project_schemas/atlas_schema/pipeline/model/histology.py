@@ -6,8 +6,9 @@ from atlas_model import AtlasModel, Base
 class Histology(Base, AtlasModel):
     __tablename__ = 'histology'
     
-    animal_id = Column(String, ForeignKey('animal.id'), nullable=False)
-    virus_id = Column(String, ForeignKey('virus.virus_id'))
+    id =  Column(Integer, primary_key=True, nullable=False)
+    prep_id = Column(String, ForeignKey('animal.id'), nullable=False)
+    virus_id = Column(Integer, ForeignKey('virus.id'))
     organic_label_id = Column(String, ForeignKey('organic_label.id'))
     performance_center = Column(Enum("CSHL", "Salk", "UCSD", "HHMI"))
     anesthesia = Column(Enum("ketamine", "isoflurane", "pentobarbital", "fatal plus"))

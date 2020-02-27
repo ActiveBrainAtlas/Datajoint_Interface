@@ -1,14 +1,14 @@
 from sqlalchemy import Column, Integer, Date, ForeignKey, Enum, String, Float
 from sqlalchemy.orm import relationship
 from .atlas_model import Base, AtlasModel
-from .slides import Slides
+from .slide import Slide
 
 
 class ScanRun(Base, AtlasModel):
     __tablename__ = 'scan_run'
     
-    animal_id = Column(String, ForeignKey('animal.id'), nullable=False)
-    
+    id =  Column(Integer, primary_key=True, nullable=False)    
+    prep_id = Column(String, ForeignKey('animal.prep_id'), nullable=False)
     performance_center = Column(Enum("CSHL", "Salk", "UCSD", "HHMI"))
     machine = Column(Enum("Zeiss", "Axioscan", "Nanozoomer","Olympus VA"))
     objective = Column(Enum("60X", "40X", "20X", "10X"))
@@ -28,7 +28,7 @@ class ScanRun(Base, AtlasModel):
     ch_4_filter_set = Column(Enum("68", "47", "38", "46", "63", "64", "50"))
     comments = Column(String)
 
-    slides = relationship('Slides', lazy=True)
+    slides = relationship('Slide', lazy=True)
     
     
     def __repr__(self):

@@ -7,7 +7,8 @@ from virus_injection import virus_injection
 class Injection(Base, AtlasModel):
     __tablename__ = 'injection'
     
-    animal_id = Column(String, ForeignKey('animal.id'), nullable=False)
+    id =  Column(Integer, primary_key=True, nullable=False)
+    prep_id = Column(String, ForeignKey('animal.pre_id'), nullable=False)
     label_id = Column(String, ForeignKey('organic_label.id'))
     performance_center = Column(Enum("CSHL", "Salk", "UCSD", "HHMI", "Duke"))
     anesthesia = Column(Enum("ketamine", "isoflurane"))

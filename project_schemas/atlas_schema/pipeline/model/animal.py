@@ -7,7 +7,7 @@ from .scan_run import ScanRun
 class Animal(Base, AtlasModel):
     __tablename__ = 'animal'
     
-    prep_id = Column(String, nullable=False)
+    prep_id = Column(String, nullable=False, primary_key=True)
     performance_center = Column(Enum("CSHL", "Salk", "UCSD", "HHMI", "Duke"))
     date_of_birth = Column(Date)
     species = Column(Enum("mouse", "rat"))

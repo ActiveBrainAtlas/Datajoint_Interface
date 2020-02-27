@@ -12,6 +12,5 @@ class AtlasModel(object):
     __table_args__ = {'mysql_engine': 'InnoDB'}
     __mapper_args__= {'always_refresh': True}
                             
-    id =  Column(Integer, primary_key=True, nullable=False)
     created = Column(Date)
     active = Column(Boolean, default=True, nullable=False)

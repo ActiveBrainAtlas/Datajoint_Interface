@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, Integer, Boolean, Float, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from .atlas_model import Base, AtlasModel
-from .slides_czi_to_tif import SlidesCziTif
+from .slide_czi_to_tif import SlideCziTif
 
 
-class Slides(Base, AtlasModel):
-    __tablename__ = 'slides'
+class Slide(Base, AtlasModel):
+    __tablename__ = 'slide'
     
+    id =  Column(Integer, primary_key=True, nullable=False)
     scan_run_id = Column(Integer, ForeignKey('scan_run.id'))
     slide_physical_id = Column(Integer)
     rescan_number = Column(Enum("", "1", "2", "3"))
@@ -22,4 +23,4 @@ class Slides(Base, AtlasModel):
     file_name = Column(String, nullable=False)
     comments = Column(String)
     
-    slides_czi_tifs = relationship('SlidesCziTif', lazy=True)
+    slide_czi_tifs = relationship('SlideCziTif', lazy=True)
