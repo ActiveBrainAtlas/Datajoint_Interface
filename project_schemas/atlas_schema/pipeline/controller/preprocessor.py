@@ -1,5 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from model.animal import Animal
+from model.histology import Histology
+from model.scan_run import ScanRun
 from model.slide import Slide
 from model.slide_czi_to_tif import SlideCziTif
 import os, sys, subprocess, time
@@ -279,3 +281,27 @@ class SlideProcessor(object):
                 animal = self.session.query(Animal).filter(Animal.prep_id == self.animal.prep_id).one()
             except (NoResultFound):
                 print('No results found for prep_id: {}.'.format(prep_id))
+                
+            try: 
+                histology = self.session.query(Histology).filter(Histology.prep_id == self.animal.prep_id).all()
+            except (NoResultFound):
+                print('No histology results found for prep_id: {}.'.format(prep_id))
+                
+            try: 
+                scan_runs = self.session.query(ScanRun).filter(ScanRun.prep_id == self.animal.prep_id).all()
+            except (NoResultFound):
+                print('No scan run results found for prep_id: {}.'.format(prep_id))
+                
+            try:
+                self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+            except (NoResultFound):
+                print('No slides found for prep_id: {}.'.format(prep_id))
+            
+            try: 
+                self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+                self.slides_ids = [slide.id for slide in self.slides]
+                tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids))
+                print('Found {} tifs'.format(tifs.count()))
+            except (NoResultFound):
+                print('No tifs found for prep_id: {}.'.format(prep_id))
+            
