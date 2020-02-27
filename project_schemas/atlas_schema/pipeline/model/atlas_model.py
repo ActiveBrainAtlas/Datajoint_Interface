@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, Date, Boolean
+from sqlalchemy import Column, Integer, Date, Boolean, TIMESTAMP
 Base = declarative_base()
 
 class AtlasModel(object):
@@ -12,5 +12,5 @@ class AtlasModel(object):
     __table_args__ = {'mysql_engine': 'InnoDB'}
     __mapper_args__= {'always_refresh': True}
                             
-    created = Column(Date)
+    created = Column(TIMESTAMP)
     active = Column(Boolean, default=True, nullable=False)
