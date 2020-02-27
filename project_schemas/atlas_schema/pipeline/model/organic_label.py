@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Date, Enum, Float, Integer
 from sqlalchemy.orm import relationship
-from atlas_model import AtlasModel, Base
+from .atlas_model import AtlasModel, Base
 
 
 class OrganicLabel(Base, AtlasModel):    

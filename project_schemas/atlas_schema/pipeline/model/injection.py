@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Date, Enum, Float, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from atlas_model import AtlasModel, Base
-from virus_injection import virus_injection
+from .atlas_model import AtlasModel, Base
+from .virus_injection import virus_injection
 
 
 class Injection(Base, AtlasModel):
