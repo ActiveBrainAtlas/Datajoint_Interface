@@ -9,7 +9,7 @@ def get_tables(engine):
     name_class = {table_name: table for table_name, table in base.classes.items()}
     name_cols = {table_name: list(table.columns)[:-2] for table_name, table in base.metadata.tables.items()}
 
-    TABLE_NAMES = ['animal', 'organic_label', 'virus', 'injection', 'injection_virus', 'scan_run', 'slide', 'slide_czi_to_tif']
+    TABLE_NAMES = ['animal', 'organic_label', 'virus', 'histology', 'injection', 'injection_virus', 'scan_run', 'slide', 'slide_czi_to_tif']
     
     return TABLE_NAMES, name_class, name_cols
 

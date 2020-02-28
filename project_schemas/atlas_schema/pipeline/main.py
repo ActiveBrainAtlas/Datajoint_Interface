@@ -50,5 +50,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     prep_id = args.prep_id
     xlsx = args.xlsx
-    fetch_and_run(prep_id)
-    #upload(xlsx, session, engine)
+    #fetch_and_run(prep_id)
+    download(prep_id, session, engine)
