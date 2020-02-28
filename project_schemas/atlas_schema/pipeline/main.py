@@ -29,24 +29,26 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    #slides_processor.insert_czi_data()
+    slide_processor.process_czi_dir()
     #slides_processor.process_czi()
     #slides_processor.depth8()
     #slides_processor.rotate_flip()
-    slide_processor.test_tables()
+    #slide_processor.test_tables()
   
-  
-def download():
+def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)      
     
     
-def upload():
-    download_spreadsheet(path, session, engine)      
+def upload(xlsx, session, engine):
+    upload_spreadsheet(xlsx, session, engine)      
     
 if __name__ == '__main__':
     # Parsing argument
     parser = argparse.ArgumentParser(description='Work on Animal')
-    parser.add_argument('prep_id', help='Enter the animal prep_id')
+    parser.add_argument('--prep_id', help='Enter the animal prep_id')
+    parser.add_argument('--xlsx', help='Enter the spreadsheet to upload')
     args = parser.parse_args()
     prep_id = args.prep_id
+    xlsx = args.xlsx
     fetch_and_run(prep_id)
+    #upload(xlsx, session, engine)

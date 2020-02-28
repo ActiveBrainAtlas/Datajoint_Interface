@@ -1,13 +1,13 @@
 from sqlalchemy.orm.exc import NoResultFound
+import os, sys, subprocess, time, datetime
+import cv2 as cv
+import numpy as np
+from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 from model.animal import Animal
 from model.histology import Histology
 from model.scan_run import ScanRun
 from model.slide import Slide
 from model.slide_czi_to_tif import SlideCziTif
-import os, sys, subprocess, time
-import cv2 as cv
-import numpy as np
-from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 
 
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
@@ -43,11 +43,12 @@ class SlideProcessor(object):
         self.session = session
         
         
-    def insert_czi_data(self):
+    def process_czi_dir(self):
         
         scan_id = max(self.scan_ids)
-        
-        Slide.__table__.delete().where( Slide.scan_run_id.in_(self.scan_ids) )
+        print(self.scan_ids)
+        #self.session.(Slide).__table__.delete().where( Slide.scan_run_id.in_(self.scan_ids) )
+        self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).delete(synchronize_session=False)
         self.session.commit()
         
         INPUT = os.path.join(DATA_ROOT, self.brain, CZI)
@@ -57,23 +58,61 @@ class SlideProcessor(object):
             print(e)
             sys.exit()
         try:
-            files = os.listdir(INPUT)
+            czi_files = os.listdir(INPUT)
         except OSError as e:
             print(e)
             sys.exit()
             
-        for i, file in enumerate(files):
+        for i, czi_file in enumerate(czi_files):
             slide = Slide()
-            slide.scan_run_id = max(self.scan_ids)
-            slide.rescan_number = 1
-            slide.file_name = file
+            slide.scan_run_id = scan_id
             slide.slide_physical_id = i
+            slide.rescan_number = ''
+            slide.scene_qc_1 = ''
+            slide.scene_qc_2 = ''
+            slide.scene_qc_3 = ''
+            slide.scene_qc_4 = ''
+            slide.scene_qc_5 = ''
+            slide.scene_qc_6 = ''            
             slide.processed = False
-            slide.file_size = os.path.getsize(os.path.join(INPUT, file))
             slide.processing_duration = 0
-            slide.created = time.strftime('%Y-%m-%d %H:%M:%S')
-            self.session.merge(slide)
+            slide.file_size = os.path.getsize(os.path.join(INPUT, czi_file))
+            slide.file_name = czi_file
+            dt = os.path.getmtime(os.path.join(INPUT, czi_file))
+            dt = datetime.datetime.fromtimestamp(dt)
+            print(dt)
+            slide.created = dt
+            self.session.add(slide)
+            self.session.flush()
+            czi_file_path = os.path.join(INPUT, czi_file)
+            metadata_dict = get_czi_metadata(czi_file_path)
+            #print(metadata_dict)
+            series = get_fullres_series_indices(metadata_dict)
+            #print(series)            
+            for j, series_index in enumerate(series):
+                scene_number = series.index( series_index )
+                channels = range(metadata_dict[scene_number]['channels'])
+                width = metadata_dict[series_index]['width']
+                height = metadata_dict[series_index]['height']
+                #print(metadata_dict[scene_number]['channels'])
+                for channel in channels:                
+                    newtif = os.path.splitext(czi_file)[0]
+                    newtif = '{}_S{}_C{}.tif'.format(czi_file, scene_number, channel)
+                    newtif = newtif.replace('.czi','')
+                    tif = SlideCziTif()
+                    tif.slide_id = slide.id
+                    tif.scene_number = series_index 
+                    tif.channel = channel
+                    tif.file_name = newtif
+                    tif.file_size = 0
+                    tif.width = width
+                    tif.height = height
+                    tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
+                    print('{}\t{}\t{}\t{}\t{}\t{}'.format(newtif, tif.slide_id, tif.scene_number, tif.channel, width, height))
+                    self.session.add(tif)
+            
         self.session.commit()
+
 
         
     def update_tif_data(self):
@@ -129,7 +168,6 @@ class SlideProcessor(object):
             czi_file = os.path.join(INPUT, slide.file_name)
             metadata_dict = get_czi_metadata(czi_file)
             #print(metadata_dict)
-            #print()
             series = get_fullres_series_indices(metadata_dict)
             #print(series)
             
