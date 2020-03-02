@@ -29,11 +29,12 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    slide_processor.process_czi_dir()
-    #slides_processor.process_czi()
-    #slides_processor.depth8()
-    #slides_processor.rotate_flip()
+    #slide_processor.process_czi_dir()
+    #slide_processor.process_czi()
     #slide_processor.test_tables()
+    #slide_processor.depth8_rotate_flip()
+    slide_processor.norm_file()
+    slide_processor.scale()
   
 def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)      
@@ -50,5 +51,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     prep_id = args.prep_id
     xlsx = args.xlsx
-    #fetch_and_run(prep_id)
-    download(prep_id, session, engine)
+    fetch_and_run(prep_id)
+    #download(prep_id, session, engine)

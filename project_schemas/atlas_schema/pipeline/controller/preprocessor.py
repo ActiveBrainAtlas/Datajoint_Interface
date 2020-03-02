@@ -1,6 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 import os, sys, subprocess, time, datetime
 import cv2 as cv
+from skimage import io
 import numpy as np
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 from model.animal import Animal
@@ -8,6 +9,8 @@ from model.histology import Histology
 from model.scan_run import ScanRun
 from model.slide import Slide
 from model.slide_czi_to_tif import SlideCziTif
+from prompt_toolkit import output
+
 
 
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
@@ -20,7 +23,7 @@ PRECOMPUTED = 'precomputed'
 PREPS = 'preps'
 ROTATED = 'rotated'
 SCALED = 'scaled'
-DEPTH8 = 'depth8'
+DEPTH8_FLIP_ROTATE = 'depth8_rotate_flip'
 
 
 class SlideProcessor(object):
@@ -86,7 +89,7 @@ class SlideProcessor(object):
             self.session.flush()
             czi_file_path = os.path.join(INPUT, czi_file)
             metadata_dict = get_czi_metadata(czi_file_path)
-            #print(metadata_dict)
+            print(metadata_dict)
             series = get_fullres_series_indices(metadata_dict)
             #print(series)            
             for j, series_index in enumerate(series):
@@ -216,7 +219,7 @@ class SlideProcessor(object):
         """
         pass
     
-    def depth8(self):
+    def depth8_rotate_flip(self):
         """
         To counterstained sections - Channel 1
         Linear normalization
@@ -226,27 +229,34 @@ class SlideProcessor(object):
         Gamma inversion (optional)
         """
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
-        OUTPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
-        self.slides_ids = [slide.id for slide in self.slides]
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8_FLIP_ROTATE)
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slide_ids = [slide.id for slide in slides]
         print(self.scan_ids)
-        print(self.slides_ids)
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids))
+        print(slide_ids)
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             output_tif = os.path.join(OUTPUT, tif.file_name)
-            #command = ['/usr/bin/convert', '-depth', '8', input_tif, output_tif]
-            #cli = " ".join(command)
-            #print(cli)
-            #proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
-            #proc.wait()
-            img16 = cv.imread(input_tif)
+            print(input_tif)
+            img16 = io.imread(input_tif)
             img8 = (img16/256).astype('uint8')
-            cv.imwrite(output_tif, img8)
+            img = np.rot90(img8, 3)
+            img = np.flipud(img)
+            io.imsave(output_tif, img, check_contrast=False)
             
         print('Finished processing tifs to depth 8.')
-    
-    def rotate_flip(self):
+
+    def lognorm(self, img):
+        img = (img/256).astype('uint')
+        lxf = np.log(img + 0.005)
+        lxf = np.where(lxf < 0, 0, lxf)
+        xmin = min(lxf.flatten()) 
+        xmax = max(lxf.flatten())
+        return -lxf*255/(xmax-xmin) + xmax*255/(xmax-xmin) #log of data and stretch 0 to 255
+
+            
+    def norm_file(self):
         """
         To counterstained sections - Channel 1
         Linear normalization
@@ -255,57 +265,47 @@ class SlideProcessor(object):
         Adaptive normalization
         Gamma inversion (optional)
         """
-        INPUT = os.path.join(DATA_ROOT, self.brain, DEPTH8)
-        OUTPUT = os.path.join(DATA_ROOT, self.brain, ROTATED)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
-        self.slides_ids = [slide.id for slide in self.slides]
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).all()
-        for tif in tifs:
-            input_tif = os.path.join(INPUT, tif.file_name)
-            output_tif = os.path.join(OUTPUT, tif.file_name)
-            #print(input_tif)
-            
-            img = cv.imread(input_tif, cv.IMREAD_ANYDEPTH)
-            print(type(img))
-            img = np.rot90(img, 3)
-            img = np.flipud(img)
-            cv.imwrite(output_tif, img)
-            
-        print('Finished proc.')
-            
-    def linear_norm_counterstain(self):
-        """
-        To counterstained sections - Channel 1
-        Linear normalization
-        Section-to-section
-        Make, inspect and change Masks
-        Adaptive normalization
-        Gamma inversion (optional)
-        """
+        io.use_plugin('tifffile')
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, NORMALIZED)
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==True).all()
-        self.slides_ids = [slide.id for slide in self.slides]
-        self.counter_stains = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(self.slides_ids)).filter(SlideCziTif.channel==0).all()
-        for counter_stain in self.counter_stains:
-            print(counter_stain.file_name)
-            input_tif = os.path.join(INPUT, counter_stain.file_name)
-            output_tif = os.path.join(OUTPUT, counter_stain.file_name)
-            command = ['/usr/bin/convert', '-normalize', '-depth', '8', input_tif, output_tif]
-            #cli = " ".join(command)
-            #print(cli)
-            proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
-            proc.wait()
-            print('Finished proc.')
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slide_ids = [slide.id for slide in slides]
+        print(self.scan_ids)
+        print(slide_ids)
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            print('working on',input_tif)
+            output_tif = os.path.join(OUTPUT, tif.file_name)
+
+            img = io.imread(input_tif)
+            img = self.lognorm(img)
+            io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+            #cv.imwrite(output_tif, img)
     
-    def process_other_channels(self):
-        """
-        To labeled sections - Channel 2,3,4
-        Set intensity values < min to 0.5 and to > max to 0.5.
-        Take logarithm
-        Linear Stretch from 0 to 255
-        """
-        pass
+    def scale(self):
+        INPUT = os.path.join(DATA_ROOT, self.brain, NORMALIZED)
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, SCALED)
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slide_ids = [slide.id for slide in slides]
+        print(self.scan_ids)
+        print(slide_ids)
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
+        scale_percent = 1 / float(32) # percent of original size
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            print('working on',input_tif)
+            output_tif = os.path.join(OUTPUT, tif.file_name)
+            img = io.imread(input_tif)
+            
+            
+            width = int(img.shape[1] * scale_percent)
+            height = int(img.shape[0] * scale_percent)
+            dim = (width, height)
+            # resize image
+            xf = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+            #io.imsave(output_tif, xf, check_contrast=False)
+            cv.imwrite(output_tif, xf)
     
 
     def precompute_tiffs(self):
