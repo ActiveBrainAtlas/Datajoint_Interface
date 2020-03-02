@@ -23,6 +23,7 @@ PRECOMPUTED = 'precomputed'
 PREPS = 'preps'
 ROTATED = 'rotated'
 SCALED = 'scaled'
+THUMBNAIL = 'thumbnail'
 DEPTH8_FLIP_ROTATE = 'depth8_rotate_flip'
 
 
@@ -248,7 +249,7 @@ class SlideProcessor(object):
         print('Finished processing tifs to depth 8.')
 
     def lognorm(self, img):
-        img = (img/256).astype('uint')
+        img = (img/256).astype('uint8')
         lxf = np.log(img + 0.005)
         lxf = np.where(lxf < 0, 0, lxf)
         xmin = min(lxf.flatten()) 
@@ -306,6 +307,22 @@ class SlideProcessor(object):
             xf = cv.resize(img, dim, interpolation = cv.INTER_AREA)
             #io.imsave(output_tif, xf, check_contrast=False)
             cv.imwrite(output_tif, xf)
+    
+    def make_thumbnails(self):
+        INPUT = os.path.join(DATA_ROOT, self.brain, SCALED)
+        OUTPUT = os.path.join(DATA_ROOT, self.brain, THUMBNAIL)
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slide_ids = [slide.id for slide in slides]
+        print(self.scan_ids)
+        print(slide_ids)
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            print('working on',input_tif)
+            img = io.imread(input_tif)
+            base = os.path.splitext(input_tif)[0]
+            output_png = os.path.join(OUTPUT, base + '.tif')
+            cv.imwrite(output_png, img)
     
 
     def precompute_tiffs(self):
