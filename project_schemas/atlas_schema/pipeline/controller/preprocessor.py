@@ -291,10 +291,10 @@ class SlideProcessor(object):
             output_tif = os.path.join(OUTPUT, tif.file_name)
 
             img = io.imread(input_tif)
-            if input_tif.contains('_C0_'):
-                img = self.lognorm(img)
-            else:
+            if '_C0_' in input_tif:
                 img = self.linnorm(img)
+            else:
+                img = self.lognorm(img)
             io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
             #cv.imwrite(output_tif, img)
     
