@@ -35,7 +35,7 @@ def fetch_and_run(prep_id):
     #slide_processor.depth8_rotate_flip()
     #slide_processor.norm_file()
     #slide_processor.scale()
-    slide_processor.make_thumbnail()
+    slide_processor.make_thumbnails()
   
 def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)      

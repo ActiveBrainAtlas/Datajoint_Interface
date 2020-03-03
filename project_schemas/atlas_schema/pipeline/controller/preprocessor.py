@@ -255,7 +255,18 @@ class SlideProcessor(object):
         xmin = min(lxf.flatten()) 
         xmax = max(lxf.flatten())
         return -lxf*255/(xmax-xmin) + xmax*255/(xmax-xmin) #log of data and stretch 0 to 255
-
+    
+    def linnorm(self, img):
+        img = (img/256).astype('uint8')
+        flat = img.flatten()
+        hist,bins = np.histogram(flat,256)
+        cdf = hist.cumsum() #cumulative distribution function
+        cdf = 255 * cdf / cdf[-1] #normalize
+        #use linear interpolation of cdf to find new pixel values
+        img_norm = np.interp(flat,bins[:-1],cdf)
+        img_norm = np.reshape(img_norm, red.shape)
+        img_norm = 255 - img_norm
+        return img_norm
             
     def norm_file(self):
         """
@@ -280,7 +291,10 @@ class SlideProcessor(object):
             output_tif = os.path.join(OUTPUT, tif.file_name)
 
             img = io.imread(input_tif)
-            img = self.lognorm(img)
+            if input_tif.contains('_C0_'):
+                img = self.lognorm(img)
+            else:
+                img = self.linnorm(img)
             io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
             #cv.imwrite(output_tif, img)
     
@@ -311,17 +325,16 @@ class SlideProcessor(object):
     def make_thumbnails(self):
         INPUT = os.path.join(DATA_ROOT, self.brain, SCALED)
         OUTPUT = os.path.join(DATA_ROOT, self.brain, THUMBNAIL)
+        if not os.path.exists(OUTPUT):
+            os.makedirs(OUTPUT)
         slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
         slide_ids = [slide.id for slide in slides]
-        print(self.scan_ids)
-        print(slide_ids)
         tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
-            print('working on',input_tif)
             img = io.imread(input_tif)
-            base = os.path.splitext(input_tif)[0]
-            output_png = os.path.join(OUTPUT, base + '.tif')
+            base = os.path.splitext(tif.file_name)[0]
+            output_png = os.path.join(OUTPUT, base + '.png')
             cv.imwrite(output_png, img)
     
 
