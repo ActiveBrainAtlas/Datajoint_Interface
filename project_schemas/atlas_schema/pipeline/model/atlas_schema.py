@@ -165,7 +165,6 @@ def scale(prep_id, tif):
 @schema
 class FileOperation(dj.Computed):
     definition = """
-    file_operation_id : int
     -> SlideCziToTif
     ---
     file_name :  varchar(200)  # (Voxels) original image width 
@@ -175,7 +174,7 @@ class FileOperation(dj.Computed):
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
         norm_file('DK43', file_name)
-        self.insert1(dict(key, file_operation_id=1, file_name=file_name, operation='normalizing'))
         scale('DK43', file_name)
-        self.insert1(dict(key, file_operation_id=2, file_name=file_name, operation='scaling'))
+        self.insert1(dict(key, file_name=file_name, operation='operations'), 
+                     skip_duplicates=True)
 # End of table definitions 
