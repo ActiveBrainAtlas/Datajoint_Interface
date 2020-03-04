@@ -31,11 +31,11 @@ def fetch_and_run(prep_id):
     slide_processor = SlideProcessor(animal, session)
     #slide_processor.process_czi_dir()
     #slide_processor.process_czi()
-    #slide_processor.test_tables()
-    #slide_processor.depth8_rotate_flip()
+    slide_processor.test_tables()
+    #slide_processor.update_tif_data()
     #slide_processor.norm_file()
     #slide_processor.scale()
-    slide_processor.make_thumbnails()
+    #slide_processor.make_thumbnails()
   
 def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)      

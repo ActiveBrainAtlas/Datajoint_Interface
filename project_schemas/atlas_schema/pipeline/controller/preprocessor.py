@@ -84,13 +84,11 @@ class SlideProcessor(object):
             slide.file_name = czi_file
             dt = os.path.getmtime(os.path.join(INPUT, czi_file))
             dt = datetime.datetime.fromtimestamp(dt)
-            print(dt)
             slide.created = dt
             self.session.add(slide)
             self.session.flush()
             czi_file_path = os.path.join(INPUT, czi_file)
             metadata_dict = get_czi_metadata(czi_file_path)
-            print(metadata_dict)
             series = get_fullres_series_indices(metadata_dict)
             #print(series)            
             for j, series_index in enumerate(series):
@@ -137,7 +135,7 @@ class SlideProcessor(object):
             sys.exit()
             
         for slide in self.slides:
-            for tif in slide.slidesCziTifs:
+            for tif in slide.slide_czi_tifs:
                 tif.file_size = os.path.getsize(os.path.join(INPUT, tif.file_name))
                 self.session.merge(tif)
         self.session.commit()
@@ -165,9 +163,9 @@ class SlideProcessor(object):
             print(e)
             sys.exit()
                 
-        self.slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
                 
-        for slide in self.slides:
+        for slide in slides:
             start = time.time()
             czi_file = os.path.join(INPUT, slide.file_name)
             metadata_dict = get_czi_metadata(czi_file)
@@ -175,12 +173,12 @@ class SlideProcessor(object):
             series = get_fullres_series_indices(metadata_dict)
             #print(series)
             
+            procs = []
             for j, series_index in enumerate(series):
                 scene_number = series.index( series_index )
                 channels = range(metadata_dict[scene_number]['channels'])
                 #print(metadata_dict[scene_number]['channels'])
                 for channel in channels:                
-                    procs = []
                     newtif = os.path.splitext(slide.file_name)[0]
                     newtif = '{}_S{}_C{}.tif'.format(slide.file_name, scene_number, channel)
                     newtif = newtif.replace('.czi','')
@@ -192,24 +190,15 @@ class SlideProcessor(object):
                     #print(cli)
                     proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
                     procs.append(proc)
-                    tif = SlideCziTif()
-                    tif.slide_id = slide.id
-                    tif.scene_number = series_index 
-                    tif.channel = channel
-                    tif.file_name = newtif
-                    tif.file_size = 0
-                    tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
-                    self.session.merge(tif)
-                proc = procs[-1]
-                proc.wait()
-                print('Finished proc.')
+            proc = procs[-1]
+            proc.wait()
+            print('Finished proc.')
             end = time.time()
             slide.processed  = True
             slide.processing_duration = end - start
             self.session.merge(slide)
             
         self.session.commit()
-        self.update_tif_data()
         
             
                     
