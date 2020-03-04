@@ -174,13 +174,8 @@ class FileOperation(dj.Computed):
     
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        self.insert1(dict(key, file_operation_id=1, file_name=file_name, operation='1normalizing'))
-        self.insert1(dict(key, file_operation_id=2, file_name=file_name, operation='2normalizing'))
-        self.insert1(dict(key, file_operation_id=3, file_name=file_name, operation='3normalizing'))
-        """
         norm_file('DK43', file_name)
         self.insert1(dict(key, file_operation_id=1, file_name=file_name, operation='normalizing'))
         scale('DK43', file_name)
         self.insert1(dict(key, file_operation_id=2, file_name=file_name, operation='scaling'))
-        """
 # End of table definitions 
