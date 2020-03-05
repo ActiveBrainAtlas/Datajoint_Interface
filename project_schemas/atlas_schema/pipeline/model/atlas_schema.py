@@ -135,8 +135,9 @@ def norm_file(prep_id, tif):
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
 
-    img = io.imread(input_tif)
-    if img.shape[0] < 10 or img.shape[0] < 10:
+    try:
+        img = io.imread(input_tif)
+    except:
         return 'Bad file size'
     """
     if '_C0_' in input_tif:
@@ -178,7 +179,13 @@ class FileOperation(dj.Computed):
     
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        status = norm_file('DK43', file_name)
+        INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
+        img_size = os.path.getsize(os.path.join(INPUT, file_name))
+        status = "Operations"
+        if img_size > 1000:
+                norm_file('DK43', file_name)
+        else:
+            status = "Invalid file size"
         #scale('DK43', file_name)
         self.insert1(dict(key, file_name=file_name, operation=status), 
                      skip_duplicates=True)
