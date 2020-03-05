@@ -322,6 +322,19 @@ class SlideProcessor(object):
             output_png = os.path.join(OUTPUT, base + '.png')
             cv.imwrite(output_png, img)
     
+    def compare(self):
+        INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
+        
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slide_ids = [slide.id for slide in slides]
+        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
+        for tif in tifs:
+            input_tif = os.path.join(INPUT, tif.file_name)
+            img = io.imread(input_tif)
+            print(img.shape)
+            print(tif.width, tif.height)
+            if img.shape[3] != tif.height or img.shape[4] != tif.width:
+                print(f'The information about {tif.file_name} is inconsistent')
 
     def precompute_tiffs(self):
         """
