@@ -11,7 +11,6 @@ from controller.spreadsheet_utilities import upload_spreadsheet, download_spread
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)
 
-
 user = parameters['user']
 password = parameters['password']
 host = parameters['host']
@@ -29,23 +28,20 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    #slide_processor.process_czi_dir()
-    #slide_processor.process_czi()
-    slide_processor.test_tables()
-    #slide_processor.update_tif_data()
-    #slide_processor.norm_file()
-    #slide_processor.scale()
-    #slide_processor.make_thumbnails()
-  
+#     slide_processor.process_czi_dir()
+#     slide_processor.process_czi()
+#     slide_processor.update_tif_data()
+#     slide_processor.test_tables()
+
 def download(prep_id, session, engine):
-    download_spreadsheet(prep_id, session, engine)      
-    
+    download_spreadsheet(prep_id, session, engine)    
     
 def upload(xlsx, session, engine):
     upload_spreadsheet(xlsx, session, engine)      
     
 if __name__ == '__main__':
     # Parsing argument
+    print(parameters)
     parser = argparse.ArgumentParser(description='Work on Animal')
     parser.add_argument('--prep_id', help='Enter the animal prep_id')
     parser.add_argument('--xlsx', help='Enter the spreadsheet to upload')

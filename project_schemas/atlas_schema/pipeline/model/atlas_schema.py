@@ -1,13 +1,12 @@
 import os
 import yaml
 import datajoint as dj
-from controller.preprocessor import DATA_ROOT, TIF, NORMALIZED, THUMBNAIL
 import cv2 as cv
 from skimage import io
 import numpy as np
+from controller.preprocessor import norm_file, thumbnail
 
-PATH = os.path.dirname(os.path.abspath(__file__))
-with open(PATH + '/parameters.dj.yaml') as file:
+with open('parameters.yaml') as file:
     credential = yaml.load(file, Loader=yaml.FullLoader)
     
 # Connect to the datajoint database
@@ -104,88 +103,6 @@ class SlideCziToTif(dj.Manual): # Used to populate sections after Bioconverter; 
     file_name       : varchar(200)
     comments = NULL : varchar(2000) # assessment
        """
-
-
-def lognorm(img):
-    img = (img/256).astype('uint8')
-    lxf = np.log(img + 0.005)
-    lxf = np.where(lxf < 0, 0, lxf)
-    xmin = min(lxf.flatten()) 
-    xmax = max(lxf.flatten())
-    return -lxf*255/(xmax-xmin) + xmax*255/(xmax-xmin) #log of data and stretch 0 to 255
-
-def linnorm(img):
-    img = (img/256).astype('uint8')
-    flat = img.flatten()
-    hist,bins = np.histogram(flat,256)
-    cdf = hist.cumsum() #cumulative distribution function
-    cdf = 255 * cdf / cdf[-1] #normalize
-    #use linear interpolation of cdf to find new pixel values
-    img_norm = np.interp(flat,bins[:-1],cdf)
-    img_norm = np.reshape(img_norm, img.shape)
-    img_norm = 255 - img_norm
-    return img_norm
-
-
-
-def norm_file(prep_id, tif):
-    io.use_plugin('tifffile')
-    INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
-    input_tif = os.path.join(INPUT, tif)
-    output_tif = os.path.join(OUTPUT, tif)
-    status = "Histogram Equalized"
-    
-    try:
-        img = io.imread(input_tif)
-    except:
-        return 'Bad file size'
-        
-    
-    if '_C0' in input_tif:
-        img = linnorm(img)
-        status += " linear equalization on C0"
-    else:
-        #img = lognorm(img)
-        status += " log norm equalization on C1,2"
-    io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
-    ## now scale and create thumbnail
-    #thumbnail(prep_id, tif)
-    
-    return status
-
-
-
-def thumbnail(prep_id, tif):
-    INPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
-    scale = 1 / float(32) # percent of original size
-    input_tif = os.path.join(INPUT, tif)
-    try:
-        img = io.imread(input_tif)
-    except:
-        return
-        
-    width = int(img.shape[1] * scale)
-    height = int(img.shape[0] * scale)
-    dim = (width, height)
-    
-    try:        
-        img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
-        #img_tb = img[::int(1./scale), ::int(1./scale)]
-    except:
-        return
-        
-    base = os.path.splitext(tif)[0]
-    output_png = os.path.join(OUTPUT, base + '.png')
-    #print('output png', base)
-    try:
-        io.imsave(output_png, img_tb, check_contrast=False)
-    except:
-        print('Could not save {}'.format(output_png))
-
-    return " Thumbnail created"
-
        
 @schema
 class FileOperation(dj.Computed):
@@ -198,18 +115,17 @@ class FileOperation(dj.Computed):
     
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
+        file_size = (SlideCziToTif & key).fetch1('file_size')
+        
         prep_id = 'DK43'
-        INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-        status = "Operations"
         try:
-            img_size = os.path.getsize(os.path.join(INPUT, file_name))
-            if img_size > 1000:
+            if file_size > 1000:
                 status = norm_file(prep_id, file_name)
                 thumbnail(prep_id, file_name)
             else:
                 status = "Invalid file size"
         except:
             status = "No file"
-        self.insert1(dict(key, file_name=file_name, operation=status), 
-                     skip_duplicates=True)
+            
+        self.insert1(dict(key, file_name=file_name, operation="Operations"), skip_duplicates=True)
 # End of table definitions 
