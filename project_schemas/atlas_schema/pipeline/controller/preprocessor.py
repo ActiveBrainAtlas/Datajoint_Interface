@@ -16,15 +16,11 @@ from prompt_toolkit import output
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
 CZI = 'czi'
 TIF = 'tif'
-INVERTED = 'inverted'
 MASKED = 'masked'
 NORMALIZED = 'normalized'
 PRECOMPUTED = 'precomputed'
 PREPS = 'preps'
-ROTATED = 'rotated'
-SCALED = 'scaled'
 THUMBNAIL = 'thumbnail'
-DEPTH8_FLIP_ROTATE = 'depth8_rotate_flip'
 
 
 class SlideProcessor(object):

@@ -164,7 +164,7 @@ def thumbnail(prep_id, tif):
     try:
         img = io.imread(input_tif)
     except:
-        print('Could not read {}'.format(input_tif))
+        return
         
     width = int(img.shape[1] * scale)
     height = int(img.shape[0] * scale)
@@ -174,7 +174,7 @@ def thumbnail(prep_id, tif):
         img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
         #img_tb = img[::int(1./scale), ::int(1./scale)]
     except:
-        print('Could not rescale {}'.format(input_tif))
+        return
         
     base = os.path.splitext(tif)[0]
     output_png = os.path.join(OUTPUT, base + '.png')
