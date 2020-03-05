@@ -134,19 +134,21 @@ def norm_file(prep_id, tif):
     OUTPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
-
+    status = "Histogram Equalized"
     try:
         img = io.imread(input_tif)
     except:
         return 'Bad file size'
-    """
+    
     if '_C0_' in input_tif:
-        img = linnorm(img)
+        #img = linnorm(img)
+        status = "C0"
     else:
-        img = lognorm(img)
-    io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
-    """
-    return 'Normalized'
+        #img = lognorm(img)
+        status = "C1,2"
+    #io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+    
+    return status
 
 
 
@@ -185,7 +187,7 @@ class FileOperation(dj.Computed):
         try:
             img_size = os.path.getsize(os.path.join(INPUT, file_name))
             if img_size > 1000:
-                norm_file('DK43', file_name)
+                norm_file(prep_id, file_name)
             else:
                 status = "Invalid file size"
         except:
