@@ -179,13 +179,17 @@ class FileOperation(dj.Computed):
     
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
+        prep_id = 'DK43'
         INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-        img_size = os.path.getsize(os.path.join(INPUT, file_name))
         status = "Operations"
-        if img_size > 1000:
+        try:
+            img_size = os.path.getsize(os.path.join(INPUT, file_name))
+            if img_size > 1000:
                 norm_file('DK43', file_name)
-        else:
-            status = "Invalid file size"
+            else:
+                status = "Invalid file size"
+        except:
+            status = "No file"
         #scale('DK43', file_name)
         self.insert1(dict(key, file_name=file_name, operation=status), 
                      skip_duplicates=True)
