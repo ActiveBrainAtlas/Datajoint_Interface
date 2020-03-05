@@ -136,11 +136,16 @@ def norm_file(prep_id, tif):
     output_tif = os.path.join(OUTPUT, tif)
 
     img = io.imread(input_tif)
+    if img.shape[0] < 10 or img.shape[0] < 10:
+        return 'Bad file size'
+    """
     if '_C0_' in input_tif:
         img = linnorm(img)
     else:
         img = lognorm(img)
     io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+    """
+    return 'Normalized'
 
 
 
@@ -167,14 +172,14 @@ class FileOperation(dj.Computed):
     definition = """
     -> SlideCziToTif
     ---
-    file_name :  varchar(200)  # (Voxels) original image width 
+    file_name :  varchar(255)  # (Voxels) original image width 
     operation :  varchar(50)  # (voxels) original image height
     """
     
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        norm_file('DK43', file_name)
+        status = norm_file('DK43', file_name)
         #scale('DK43', file_name)
-        self.insert1(dict(key, file_name=file_name, operation='operations'), 
+        self.insert1(dict(key, file_name=file_name, operation=status), 
                      skip_duplicates=True)
 # End of table definitions 
