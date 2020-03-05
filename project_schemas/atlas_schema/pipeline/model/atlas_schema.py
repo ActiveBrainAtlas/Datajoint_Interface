@@ -174,7 +174,7 @@ class FileOperation(dj.Computed):
     def make(self, key):
         file_name = (SlideCziToTif & key).fetch1('file_name')
         norm_file('DK43', file_name)
-        scale('DK43', file_name)
+        #scale('DK43', file_name)
         self.insert1(dict(key, file_name=file_name, operation='operations'), 
                      skip_duplicates=True)
 # End of table definitions 
