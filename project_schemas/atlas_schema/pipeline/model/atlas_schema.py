@@ -1,7 +1,7 @@
 import os
 import yaml
 import datajoint as dj
-from controller.preprocessor import DATA_ROOT, TIF, NORMALIZED, SCALED
+from controller.preprocessor import DATA_ROOT, TIF, NORMALIZED, THUMBNAIL
 import cv2 as cv
 from skimage import io
 import numpy as np
@@ -135,39 +135,56 @@ def norm_file(prep_id, tif):
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
     status = "Histogram Equalized"
+    
     try:
         img = io.imread(input_tif)
     except:
         return 'Bad file size'
+        
     
-    if '_C0_' in input_tif:
-        #img = linnorm(img)
-        status = "C0"
+    if '_C0' in input_tif:
+        img = linnorm(img)
+        status += " linear equalization on C0"
     else:
         #img = lognorm(img)
-        status = "C1,2"
-    #io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+        status += " log norm equalization on C1,2"
+    io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+    ## now scale and create thumbnail
+    #thumbnail(prep_id, tif)
     
     return status
 
 
 
-def scale(prep_id, tif):
+def thumbnail(prep_id, tif):
     INPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, SCALED)
-    scale_percent = 1 / float(32) # percent of original size
+    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
+    scale = 1 / float(32) # percent of original size
     input_tif = os.path.join(INPUT, tif)
-    output_tif = os.path.join(OUTPUT, tif)
-    img = io.imread(input_tif)
-    
-    
-    width = int(img.shape[1] * scale_percent)
-    height = int(img.shape[0] * scale_percent)
+    try:
+        img = io.imread(input_tif)
+    except:
+        print('Could not read {}'.format(input_tif))
+        
+    width = int(img.shape[1] * scale)
+    height = int(img.shape[0] * scale)
     dim = (width, height)
-    # resize image
-    xf = cv.resize(img, dim, interpolation = cv.INTER_AREA)
-    #io.imsave(output_tif, xf, check_contrast=False)
-    cv.imwrite(output_tif, xf)
+    
+    try:        
+        img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+        #img_tb = img[::int(1./scale), ::int(1./scale)]
+    except:
+        print('Could not rescale {}'.format(input_tif))
+        
+    base = os.path.splitext(tif)[0]
+    output_png = os.path.join(OUTPUT, base + '.png')
+    #print('output png', base)
+    try:
+        io.imsave(output_png, img_tb, check_contrast=False)
+    except:
+        print('Could not save {}'.format(output_png))
+
+    return " Thumbnail created"
 
        
 @schema
@@ -175,8 +192,8 @@ class FileOperation(dj.Computed):
     definition = """
     -> SlideCziToTif
     ---
-    file_name :  varchar(255)  # (Voxels) original image width 
-    operation :  varchar(50)  # (voxels) original image height
+    file_name :  varchar(200)  # (Voxels) original image width 
+    operation :  varchar(255)  # (voxels) original image height
     """
     
     def make(self, key):
@@ -187,12 +204,12 @@ class FileOperation(dj.Computed):
         try:
             img_size = os.path.getsize(os.path.join(INPUT, file_name))
             if img_size > 1000:
-                norm_file(prep_id, file_name)
+                status = norm_file(prep_id, file_name)
+                thumbnail(prep_id, file_name)
             else:
                 status = "Invalid file size"
         except:
             status = "No file"
-        #scale('DK43', file_name)
         self.insert1(dict(key, file_name=file_name, operation=status), 
                      skip_duplicates=True)
 # End of table definitions 
