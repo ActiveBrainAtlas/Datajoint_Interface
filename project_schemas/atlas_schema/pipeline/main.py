@@ -30,8 +30,8 @@ def fetch_and_run(prep_id):
     slide_processor = SlideProcessor(animal, session)
 #     slide_processor.process_czi_dir()
 #     slide_processor.process_czi()
-#     slide_processor.update_tif_data()
-#     slide_processor.test_tables()
+    slide_processor.update_tif_data()
+    slide_processor.test_tables()
 
 def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)    

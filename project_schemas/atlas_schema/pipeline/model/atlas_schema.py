@@ -4,7 +4,7 @@ import datajoint as dj
 import cv2 as cv
 from skimage import io
 import numpy as np
-from controller.preprocessor import norm_file, thumbnail
+from controller.preprocessor import make_thumbnail
 
 with open('parameters.yaml') as file:
     credential = yaml.load(file, Loader=yaml.FullLoader)
@@ -120,12 +120,12 @@ class FileOperation(dj.Computed):
         prep_id = 'DK43'
         try:
             if file_size > 1000:
-                status = norm_file(prep_id, file_name)
-                thumbnail(prep_id, file_name)
+                #status = norm_file(prep_id, file_name)
+                status = make_thumbnail(prep_id, file_name)
             else:
                 status = "Invalid file size"
         except:
             status = "No file"
             
-        self.insert1(dict(key, file_name=file_name, operation="Operations"), skip_duplicates=True)
+        self.insert1(dict(key, file_name=file_name, operation=status), skip_duplicates=True)
 # End of table definitions 

@@ -204,7 +204,6 @@ class SlideProcessor(object):
             print('No tifs found for prep_id: {}.'.format(prep_id))
 
 def lognorm(img):
-    img = (img/256).astype('uint8')
     lxf = np.log(img + 0.005)
     lxf = np.where(lxf < 0, 0, lxf)
     xmin = min(lxf.flatten()) 
@@ -212,7 +211,6 @@ def lognorm(img):
     return -lxf*255/(xmax-xmin) + xmax*255/(xmax-xmin) #log of data and stretch 0 to 255
 
 def linnorm(img):
-    img = (img/256).astype('uint8')
     flat = img.flatten()
     hist,bins = np.histogram(flat,256)
     cdf = hist.cumsum() #cumulative distribution function
@@ -223,29 +221,51 @@ def linnorm(img):
     img_norm = 255 - img_norm
     return img_norm
 
-def norm_file(prep_id, tif):
+def make_thumbnail(prep_id, tif):
     io.use_plugin('tifffile')
     INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
+    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
-    status = "Histogram Equalized"
+    status = "Thumbnail created"
     
     try:
         img = io.imread(input_tif)
     except:
         return 'Bad file size'
         
+    # convert to 8bit
+    img = (img/256).astype('uint8')
+    img = np.rot90(img, 1)
+    img = np.fliplr(img)
+    scale = (1/float(32))
+    try:        
+        #img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+        img = img[::int(1./scale), ::int(1./scale)]
+    except:
+        return "Could not scale"
     
     if '_C0' in input_tif:
         img = linnorm(img)
         status += " linear equalization on C0"
     else:
-        #img = lognorm(img)
+        img = lognorm(img)
         status += " log norm equalization on C1,2"
-    io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+    #io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
+    #scale = 1 / float(32) # percent of original size
+    #width = int(img.shape[1] * scale)
+    #height = int(img.shape[0] * scale)
+    #dim = (width, height)
     
-    return status
+        
+    base = os.path.splitext(tif)[0]
+    output_png = os.path.join(OUTPUT, base + '.png')
+    try:
+        io.imsave(output_png, img, check_contrast=False)
+    except:
+        print('Could not save {}'.format(output_png))
+
+    return " Thumbnail created"    
 
 def thumbnail(prep_id, tif):
     INPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
