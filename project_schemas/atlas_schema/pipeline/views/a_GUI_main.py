@@ -81,7 +81,7 @@ class init_GUI(QWidget):
         self.grid_top.addWidget( self.e1, 0, 0)
         # Dropbown Menu (ComboBox) for selecting Stack
         self.cb = QComboBox()
-        self.cb.addItems( all_stacks )
+        seXXXXXlf.cb.addItems( all_stacks )
         self.cb.setFont( self.font1 )
         self.cb.currentIndexChanged.connect( self.newDropdownSelection )
         self.grid_top.addWidget(self.cb, 0, 1)

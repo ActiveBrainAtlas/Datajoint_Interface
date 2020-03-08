@@ -16,6 +16,7 @@ from prompt_toolkit import output
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
 CZI = 'czi'
 TIF = 'tif'
+ROTATED = 'depth8_rotate_flip'
 MASKED = 'masked'
 NORMALIZED = 'normalized'
 PRECOMPUTED = 'precomputed'
@@ -178,22 +179,22 @@ class SlideProcessor(object):
         try: 
             animal = self.session.query(Animal).filter(Animal.prep_id == self.animal.prep_id).one()
         except (NoResultFound):
-            print('No results found for prep_id: {}.'.format(prep_id))
+            print('No results found for prep_id: {}.'.format(self.prep_id))
 
         try: 
             histology = self.session.query(Histology).filter(Histology.prep_id == self.animal.prep_id).all()
         except (NoResultFound):
-            print('No histology results found for prep_id: {}.'.format(prep_id))
+            print('No histology results found for prep_id: {}.'.format(self.prep_id))
 
         try: 
             scan_runs = self.session.query(ScanRun).filter(ScanRun.prep_id == self.animal.prep_id).all()
         except (NoResultFound):
-            print('No scan run results found for prep_id: {}.'.format(prep_id))
+            print('No scan run results found for prep_id: {}.'.format(self.prep_id))
 
         try:
             slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
         except (NoResultFound):
-            print('No slides found for prep_id: {}.'.format(prep_id))
+            print('No slides found for prep_id: {}.'.format(self.prep_id))
 
         try: 
             slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
@@ -201,7 +202,7 @@ class SlideProcessor(object):
             tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slides_ids))
             print('Found {} tifs'.format(tifs.count()))
         except (NoResultFound):
-            print('No tifs found for prep_id: {}.'.format(prep_id))
+            print('No tifs found for prep_id: {}.'.format(self.prep_id))
 
 def lognorm(img):
     lxf = np.log(img + 0.005)
@@ -221,13 +222,13 @@ def linnorm(img):
     img_norm = 255 - img_norm
     return img_norm
 
-def make_thumbnail(prep_id, tif):
+def flip_rotate(prep_id, tif):
     io.use_plugin('tifffile')
     INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
+    OUTPUT = os.path.join(DATA_ROOT, prep_id, ROTATED)
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
-    status = "Thumbnail created"
+    status = "Image rotated"
     
     try:
         img = io.imread(input_tif)
@@ -238,6 +239,28 @@ def make_thumbnail(prep_id, tif):
     img = (img/256).astype('uint8')
     img = np.rot90(img, 1)
     img = np.fliplr(img)
+    try:
+        io.imsave(output_tif, img, check_contrast=False)
+    except:
+        print('Could not save {}'.format(output_tif))
+
+    return " Thumbnail created"    
+
+
+
+def make_thumbnail(prep_id, tif):
+    io.use_plugin('tifffile')
+    INPUT = os.path.join(DATA_ROOT, prep_id, ROTATED)
+    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
+    input_tif = os.path.join(INPUT, tif)
+    output_tif = os.path.join(OUTPUT, tif)
+    status = "Thumbnail created"
+    
+    try:
+        img = io.imread(input_tif)
+    except:
+        return 'Bad file size'
+        
     scale = (1/float(32))
     try:        
         #img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
@@ -250,49 +273,14 @@ def make_thumbnail(prep_id, tif):
         status += " linear equalization on C0"
     else:
         img = lognorm(img)
-        status += " log norm equalization on C1,2"
-    #io.imsave(output_tif, img.astype('uint8'), check_contrast=False)
-    #scale = 1 / float(32) # percent of original size
-    #width = int(img.shape[1] * scale)
-    #height = int(img.shape[0] * scale)
-    #dim = (width, height)
-    
+        status += " log norm equalization on C1,2"    
         
     base = os.path.splitext(tif)[0]
     output_png = os.path.join(OUTPUT, base + '.png')
     try:
         io.imsave(output_png, img, check_contrast=False)
     except:
-        print('Could not save {}'.format(output_png))
+        status += " Could not save"
 
     return " Thumbnail created"    
 
-def thumbnail(prep_id, tif):
-    INPUT = os.path.join(DATA_ROOT, prep_id, NORMALIZED)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
-    scale = 1 / float(32) # percent of original size
-    input_tif = os.path.join(INPUT, tif)
-    try:
-        img = io.imread(input_tif)
-    except:
-        return
-        
-    width = int(img.shape[1] * scale)
-    height = int(img.shape[0] * scale)
-    dim = (width, height)
-    
-    try:        
-        img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
-        #img_tb = img[::int(1./scale), ::int(1./scale)]
-    except:
-        return
-        
-    base = os.path.splitext(tif)[0]
-    output_png = os.path.join(OUTPUT, base + '.png')
-    #print('output png', base)
-    try:
-        io.imsave(output_png, img_tb, check_contrast=False)
-    except:
-        print('Could not save {}'.format(output_png))
-
-    return " Thumbnail created"
