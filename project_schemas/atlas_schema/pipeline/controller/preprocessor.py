@@ -58,12 +58,6 @@ class SlideProcessor(object):
             slide.scan_run_id = scan_id
             slide.slide_physical_id = i
             slide.rescan_number = ''
-            slide.scene_qc_1 = ''
-            slide.scene_qc_2 = ''
-            slide.scene_qc_3 = ''
-            slide.scene_qc_4 = ''
-            slide.scene_qc_5 = ''
-            slide.scene_qc_6 = ''            
             slide.processed = False
             slide.processing_duration = 0
             slide.file_size = os.path.getsize(os.path.join(self.CZI_FOLDER, czi_file))
@@ -77,6 +71,7 @@ class SlideProcessor(object):
             metadata_dict = get_czi_metadata(czi_file_path)
             series = get_fullres_series_indices(metadata_dict)
             for j, series_index in enumerate(series):
+                j += 1
                 scene_number = series.index( series_index )
                 channels = range(metadata_dict[scene_number]['channels'])
                 width = metadata_dict[series_index]['width']
@@ -98,7 +93,8 @@ class SlideProcessor(object):
                     tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
                     print('{}\t{}\t{}\t{}\t{}\t{}'.format(newtif, tif.slide_id, tif.scene_number, tif.channel, width, height))
                     self.session.add(tif)
-                    section_number += 1
+                section_number += 1
+
             self.session.commit()
         
     def update_tif_data(self):
