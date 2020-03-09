@@ -52,7 +52,7 @@ class SlideProcessor(object):
         except OSError as e:
             print(e)
             sys.exit()
-            
+        section_number = 1
         for i, czi_file in enumerate(czi_files):
             slide = Slide()
             slide.scan_run_id = scan_id
@@ -84,11 +84,12 @@ class SlideProcessor(object):
                 #print(metadata_dict[scene_number]['channels'])
                 for channel in channels:                
                     newtif = os.path.splitext(czi_file)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(czi_file, scene_number, channel)
+                    newtif = '{}_S{}_C{}.tif'.format(czi_file, j, channel)
                     newtif = newtif.replace('.czi','')
                     tif = SlideCziTif()
                     tif.slide_id = slide.id
-                    tif.scene_number = series_index 
+                    tif.section_number = section_number
+                    tif.scene_number = j 
                     tif.channel = channel
                     tif.file_name = newtif
                     tif.file_size = 0
@@ -97,6 +98,7 @@ class SlideProcessor(object):
                     tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
                     print('{}\t{}\t{}\t{}\t{}\t{}'.format(newtif, tif.slide_id, tif.scene_number, tif.channel, width, height))
                     self.session.add(tif)
+                    section_number += 1
             self.session.commit()
         
     def update_tif_data(self):
@@ -141,7 +143,7 @@ class SlideProcessor(object):
                 channels = range(metadata_dict[scene_number]['channels'])
                 for channel in channels:                
                     newtif = os.path.splitext(slide.file_name)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, scene_number, channel)
+                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, j, channel)
                     newtif = newtif.replace('.czi','')
                     tif_file = os.path.join(self.TIF_FOLDER, newtif)
                 

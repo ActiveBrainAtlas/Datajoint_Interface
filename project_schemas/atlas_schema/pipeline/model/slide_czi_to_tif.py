@@ -8,6 +8,7 @@ class SlideCziTif(Base, AtlasModel):
     
     id =  Column(Integer, primary_key=True, nullable=False)
     slide_id = Column(Integer, ForeignKey('slide.id'), nullable=False)
+    section_number = Column(Integer)
     scene_number = Column(Integer) 
     channel = Column(Integer)
     width = Column(Integer)
