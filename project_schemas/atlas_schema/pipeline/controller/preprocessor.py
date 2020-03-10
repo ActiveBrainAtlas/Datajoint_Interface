@@ -48,7 +48,7 @@ class SlideProcessor(object):
         self.session.commit()
         
         try:
-            czi_files = os.listdir(self.CZI_FOLDER)
+            czi_files = sorted(os.listdir(self.CZI_FOLDER))
         except OSError as e:
             print(e)
             sys.exit()
@@ -111,8 +111,10 @@ class SlideProcessor(object):
         slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
         for slide in slides:
             for tif in slide.slide_czi_tifs:
-                tif.file_size = os.path.getsize(os.path.join(self.TIF_FOLDER, tif.file_name))
-                self.session.merge(tif)
+                input_tif = os.path.join(self.TIF_FOLDER, tif.file_name)
+                if os.path.exists(input_tif):
+                    tif.file_size = os.path.getsize(input_tif)
+                    self.session.merge(tif)
         self.session.commit()
         
     def process_czi(self):
