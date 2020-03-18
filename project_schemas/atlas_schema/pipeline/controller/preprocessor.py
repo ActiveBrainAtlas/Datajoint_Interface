@@ -1,7 +1,16 @@
+"""
+Working with OpenCV
+It is possible that you may need to use an image created using skimage with OpenCV or vice versa. 
+OpenCV image data can be accessed (without copying) in NumPy (and, thus, in scikit-image). 
+OpenCV uses BGR (instead of scikit-image’s RGB) for color images, and its dtype is 
+uint8 by default (See Image data types and what they mean). BGR stands for Blue Green Red.
+"""
+
 from sqlalchemy.orm.exc import NoResultFound
 import os, sys, subprocess, time, datetime
 import cv2 as cv
 from skimage import io
+from skimage.util import img_as_uint
 import numpy as np
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 from model.animal import Animal
@@ -9,14 +18,13 @@ from model.histology import Histology
 from model.scan_run import ScanRun
 from model.slide import Slide
 from model.slide_czi_to_tif import SlideCziTif
-from prompt_toolkit import output
 
 
 
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
 CZI = 'czi'
 TIF = 'tif'
-ROTATED = 'depth8_rotate_flip'
+ROTATED = 'rotated'
 MASKED = 'masked'
 NORMALIZED = 'normalized'
 PRECOMPUTED = 'precomputed'
@@ -57,7 +65,8 @@ class SlideProcessor(object):
             slide = Slide()
             slide.scan_run_id = scan_id
             slide.slide_physical_id = i
-            slide.rescan_number = ''
+            slide.rescan_number = "1"
+            slide.slide_status = 'Good'
             slide.processed = False
             slide.processing_duration = 0
             slide.file_size = os.path.getsize(os.path.join(self.CZI_FOLDER, czi_file))
@@ -71,7 +80,7 @@ class SlideProcessor(object):
             metadata_dict = get_czi_metadata(czi_file_path)
             series = get_fullres_series_indices(metadata_dict)
             for j, series_index in enumerate(series):
-                j += 1
+                #j += 1
                 scene_number = series.index( series_index )
                 channels = range(metadata_dict[scene_number]['channels'])
                 width = metadata_dict[series_index]['width']
@@ -117,6 +126,23 @@ class SlideProcessor(object):
                     self.session.merge(tif)
         self.session.commit()
         
+    def get_slide_status(self, slide, series):
+        bad_slides = []
+        if slide.scene_qc_1 is not None:
+            bad_slides.append(series[0])
+        if slide.scene_qc_2 is not None:
+            bad_slides.append(series[1])
+        if slide.scene_qc_3 is not None:
+            bad_slides.append(series[2])
+        if slide.scene_qc_4 is not None:
+            bad_slides.append(series[3])
+        if slide.scene_qc_5 is not None and len(series) > 4:
+            bad_slides.append(series[4])
+        if slide.scene_qc_6 is not None and len(series) > 5:
+            bad_slides.append(series[5])
+        return bad_slides
+    
+        
     def process_czi(self):
         """
         CZI to Tiff - LZW compression. Controls are about the same size Tiff as CZI (factor of 1 or 2). 
@@ -128,23 +154,23 @@ class SlideProcessor(object):
             print(e)
             sys.exit()
                 
-        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).all()
+        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).filter(Slide.slide_status=='Good').all()
         for slide in slides:
             start = time.time()
             czi_file = os.path.join(self.CZI_FOLDER, slide.file_name)
             metadata_dict = get_czi_metadata(czi_file)
+            #print(metadata_dict)
             series = get_fullres_series_indices(metadata_dict)
-            
+            badslides = self.get_slide_status(slide,series)
+            series = [i for i in series if i not in badslides]
             procs = []
             for j, series_index in enumerate(series):
-                scene_number = series.index( series_index )
-                channels = range(metadata_dict[scene_number]['channels'])
+                channels = range(metadata_dict[series_index]['channels'])
                 for channel in channels:                
                     newtif = os.path.splitext(slide.file_name)[0]
                     newtif = '{}_S{}_C{}.tif'.format(slide.file_name, j, channel)
                     newtif = newtif.replace('.czi','')
                     tif_file = os.path.join(self.TIF_FOLDER, newtif)
-                
                     command = ['/usr/local/share/bftools/bfconvert', '-bigtiff', '-compression', 'LZW', '-separate', 
                               '-series', str(series_index), '-channel', str(channel), '-nooverwrite', czi_file, tif_file]
                     cli = " ".join(command)
@@ -204,22 +230,40 @@ class SlideProcessor(object):
         except (NoResultFound):
             print('No tifs found for prep_id: {}.'.format(self.prep_id))
 
-def lognorm(img):
+def everything(img, rotation):
+    scale = 1 / float(32)
+    two_16 = 2**16
+    img = np.rot90(img, rotation)
+    img = np.fliplr(img)
+    img = img[::int(1./scale), ::int(1./scale)]
+    flat = img.flatten()
+    hist,bins = np.histogram(flat,two_16)
+    cdf = hist.cumsum() #cumulative distribution function
+    cdf = two_16 * cdf / cdf[-1] #normalize
+    #use linear interpolation of cdf to find new pixel values
+    img_norm = np.interp(flat,bins[:-1],cdf)
+    img_norm = np.reshape(img_norm, img.shape)
+    img_norm = two_16 - img_norm
+    return img_norm.astype('uint16')
+                                                
+            
+            
+def lognorm(img, limit):
     lxf = np.log(img + 0.005)
     lxf = np.where(lxf < 0, 0, lxf)
     xmin = min(lxf.flatten()) 
     xmax = max(lxf.flatten())
-    return -lxf*255/(xmax-xmin) + xmax*255/(xmax-xmin) #log of data and stretch 0 to 255
+    return -lxf*limit/(xmax-xmin) + xmax*limit/(xmax-xmin) #log of data and stretch 0 to 255
 
-def linnorm(img):
+def linnorm(img, limit):
     flat = img.flatten()
-    hist,bins = np.histogram(flat,256)
+    hist,bins = np.histogram(flat,limit + 1)
     cdf = hist.cumsum() #cumulative distribution function
-    cdf = 255 * cdf / cdf[-1] #normalize
+    cdf = limit * cdf / cdf[-1] #normalize
     #use linear interpolation of cdf to find new pixel values
     img_norm = np.interp(flat,bins[:-1],cdf)
     img_norm = np.reshape(img_norm, img.shape)
-    img_norm = 255 - img_norm
+    img_norm = limit - img_norm
     return img_norm
 
 def flip_rotate(prep_id, tif):
@@ -236,21 +280,35 @@ def flip_rotate(prep_id, tif):
         return 'Bad file size'
         
     # convert to 8bit
-    img = (img/256).astype('uint8')
-    img = np.rot90(img, 1)
-    img = np.fliplr(img)
+    #img = (img/256).astype('uint8')
+        
     try:
-        io.imsave(output_tif, img, check_contrast=False)
+        img = np.rot90(img, 1)
+    except:
+        print('could not rotate',tif)
+        
+    try:
+        img = np.fliplr(img)
+    except:
+        print('could not flip',tif)
+        
+    try:
+        img = img_as_uint(img)
+    except:
+        print('could not convert to 16bit',tif)
+    
+    try:
+        io.imsave(output_tif, img)
     except:
         print('Could not save {}'.format(output_tif))
 
-    return " Thumbnail created"    
+    return " Flipped and rotated"    
 
 
 
 def make_thumbnail(prep_id, tif):
     io.use_plugin('tifffile')
-    INPUT = os.path.join(DATA_ROOT, prep_id, ROTATED)
+    INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
     OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
@@ -261,6 +319,7 @@ def make_thumbnail(prep_id, tif):
     except:
         return 'Bad file size'
         
+    """
     scale = (1/float(32))
     try:        
         #img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
@@ -268,13 +327,15 @@ def make_thumbnail(prep_id, tif):
     except:
         return "Could not scale"
     
+    two_16 = 2**16
     if '_C0' in input_tif:
-        img = linnorm(img)
+        img = linnorm(img, two_16)
         status += " linear equalization on C0"
     else:
-        img = lognorm(img)
+        img = lognorm(img, two_16)
         status += " log norm equalization on C1,2"    
-        
+    """
+    img = everything(img, 1)
     base = os.path.splitext(tif)[0]
     output_png = os.path.join(OUTPUT, base + '.png')
     try:
