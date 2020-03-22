@@ -8,18 +8,7 @@ import sys
 from controller.preprocessor import SlideProcessor
 from controller.spreadsheet_utilities import upload_spreadsheet, download_spreadsheet
 from model.atlas_schema import manipulate_images
-
-with open('parameters.yaml') as file:
-    parameters = yaml.load(file, Loader=yaml.FullLoader)
-
-user = parameters['user']
-password = parameters['password']
-host = parameters['host']
-database = parameters['schema']
-connection_string = 'mysql+pymysql://{}:{}@{}/{}'.format(user, password, host, database)
-engine = create_engine(connection_string, echo=False)
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+from sql_setup import session
 
 def fetch_and_run(prep_id):
     try: 
@@ -29,9 +18,9 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    #slide_processor.process_czi_dir()
-    manipulate_images(prep_id)
-    slide_processor.test_tables()
+    slide_processor.process_czi_dir()
+    #manipulate_images(prep_id)
+    #slide_processor.test_tables()
 
 def download(prep_id, session, engine):
     download_spreadsheet(prep_id, session, engine)    
@@ -41,7 +30,6 @@ def upload(xlsx, session, engine):
     
 if __name__ == '__main__':
     # Parsing argument
-    print('Using:',parameters)
     parser = argparse.ArgumentParser(description='Work on Animal')
     parser.add_argument('--prep_id', help='Enter the animal prep_id', required=True)
     parser.add_argument('--xlsx', help='Enter the spreadsheet to upload')
