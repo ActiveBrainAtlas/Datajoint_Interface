@@ -7,6 +7,7 @@ from model.animal import Animal
 import sys
 from controller.preprocessor import SlideProcessor
 from controller.spreadsheet_utilities import upload_spreadsheet, download_spreadsheet
+from model.atlas_schema import manipulate_images
 
 with open('parameters.yaml') as file:
     parameters = yaml.load(file, Loader=yaml.FullLoader)
@@ -29,8 +30,7 @@ def fetch_and_run(prep_id):
         
     slide_processor = SlideProcessor(animal, session)
     #slide_processor.process_czi_dir()
-    slide_processor.process_czi()
-    slide_processor.update_tif_data()
+    manipulate_images(prep_id)
     slide_processor.test_tables()
 
 def download(prep_id, session, engine):
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # Parsing argument
     print('Using:',parameters)
     parser = argparse.ArgumentParser(description='Work on Animal')
-    parser.add_argument('--prep_id', help='Enter the animal prep_id')
+    parser.add_argument('--prep_id', help='Enter the animal prep_id', required=True)
     parser.add_argument('--xlsx', help='Enter the spreadsheet to upload')
     args = parser.parse_args()
     prep_id = args.prep_id

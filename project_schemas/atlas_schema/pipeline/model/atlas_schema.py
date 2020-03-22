@@ -1,24 +1,11 @@
-import os
-import yaml
-import datajoint as dj
-import cv2 as cv
-from skimage import io
 import numpy as np
 from datetime import datetime
-from controller.preprocessor import make_thumbnail, flip_rotate
-
-with open('parameters.yaml') as file:
-    credential = yaml.load(file, Loader=yaml.FullLoader)
-    
-# Connect to the datajoint database
-dj.config['database.user'] = credential['user']
-dj.config['database.password'] = credential['password']
-dj.config['database.host'] = credential['host']
-dj.conn()
+from controller.preprocessor import make_thumbnail, make_histogram, make_tif
+from sql_setup import session, dj, database
+import sys
 
 # Get the specified schema reference
-schema = dj.schema(credential['schema'])
-
+schema = dj.schema(database)
 
 # Below are the table definitions
 @schema
@@ -49,7 +36,7 @@ class Animal(dj.Manual):
 @schema 
 class ScanRun(dj.Manual):
     definition = """
-    id                      : int                            
+    id                      : int auto_increment                            
     -> Animal # currently assumes tissue from a single animals on each slide
     ---
     performance_center = NULL    : enum("CSHL", "Salk", "UCSD", "HHMI") # default population is from Histology
@@ -74,9 +61,10 @@ class ScanRun(dj.Manual):
 @schema
 class Slide(dj.Manual): # prior to segregation of animals and scenes on each slide
     definition = """
-    id : int                                               # one per slide
+    id : int   auto_increment                                             # one per slide
     -> ScanRun
     ---
+    slide_status      : enum("Bad", "Good")
     rescan_number     : enum("", "1", "2", "3")
     scene_qc_1 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
     scene_qc_2 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
@@ -90,7 +78,7 @@ class Slide(dj.Manual): # prior to segregation of animals and scenes on each sli
 @schema
 class SlideCziToTif(dj.Manual): # Used to populate sections after Bioconverter; this is the replacement for the "text file"
     definition = """
-    id : int
+    id : int auto_increment
     -> Slide
     ----------------
     slide_number    : int
@@ -104,21 +92,48 @@ class SlideCziToTif(dj.Manual): # Used to populate sections after Bioconverter; 
 @schema
 class FileOperation(dj.Computed):
     definition = """
-    id : int                                               # one per slide
+    id : int
     -> SlideCziToTif
     ---
-    file_name :  varchar(200)  # (Voxels) original image width 
-    operation :  varchar(255)  # (voxels) original image height
+    file_name :  varchar(200) 
+    thumbnail: tinyint
+    czi_to_tif: tinyint
+    histogram: tinyint
     created: datetime
     """
     
     def make(self, key):
-        prep_id = 'DK43'
+        file_id = (SlideCziToTif & key).fetch1('id')
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        #file_size = (SlideCziToTif * Slide * ScanRun * Animal & key).fetch1('file_size')
-        #status = norm_file(prep_id, file_name)
-        #status = flip_rotate(prep_id, file_name)
-        status = make_thumbnail(prep_id, file_name)
-            
-        self.insert1(dict(key, file_name=file_name, operation=status, created=datetime.now()), skip_duplicates=True)
-# End of table definitions 
+        czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
+        histogram = make_histogram(session, prep_id, np.asscalar(file_id))
+        thumbnail = make_thumbnail(prep_id, file_name)
+        self.insert1(dict(key, file_name=file_name,
+                          created=datetime.now(),
+                          thumbnail=thumbnail,
+                          czi_to_tif = czi_to_tif,
+                          histogram = histogram), skip_duplicates=True)
+# End of table definitions
+
+
+def manipulate_images(id):
+    global prep_id
+    prep_id = id
+    scans = (ScanRun & ('prep_id = "{}"'.format(prep_id))).fetch("KEY")
+    if not scans:
+        print('No scan data for {}'.format(prep_id))
+        sys.exit()
+    scan_run_ids = [v for sublist in scans for k, v in sublist.items()]
+    slides = [(Slide & 'slide_status = "Good"' & 'scan_run_id={}'.format(i)).fetch("KEY") for i in scan_run_ids][0]
+    if not slides:
+        print('No slide data for {}'.format(prep_id))
+        sys.exit()
+    slide_ids = [v for sublist in slides for k, v in sublist.items()]
+    slide_ids = tuple(slide_ids)
+    restriction = 'slide_id IN {}'.format(slide_ids)
+    if len(slide_ids) == 1:
+        slide_ids = (slide_ids[0])
+        restriction = 'slide_id = {}'.format(slide_ids)
+
+    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True)
+

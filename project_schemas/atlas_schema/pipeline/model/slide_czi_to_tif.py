@@ -16,3 +16,6 @@ class SlideCziTif(Base, AtlasModel):
     file_name = Column(String)
     file_size = Column(Float)
     comments = Column(String)
+    channel_index = Column(Integer)
+    scene_index = Column(Integer)
+    processing_duration = Column(Float, nullable=False)

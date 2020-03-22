@@ -19,7 +19,6 @@ class Slide(Base, AtlasModel):
     scene_qc_5 = Column(Enum("Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue"), nullable=True)
     scene_qc_6 = Column(Enum("Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue"), nullable=True)
     processed = Column(Boolean(), default=False)
-    processing_duration = Column(Float, nullable=False)
     file_size = Column(Float, nullable=False)
     file_name = Column(String, nullable=False)
     comments = Column(String)

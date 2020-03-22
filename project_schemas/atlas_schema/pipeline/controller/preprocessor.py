@@ -8,28 +8,30 @@ uint8 by default (See Image data types and what they mean). BGR stands for Blue 
 
 from sqlalchemy.orm.exc import NoResultFound
 import os, sys, subprocess, time, datetime
-import cv2 as cv
+from matplotlib import pyplot as plt
 from skimage import io
 from skimage.util import img_as_uint
 import numpy as np
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 from model.animal import Animal
-from model.histology import Histology
-from model.scan_run import ScanRun
-from model.slide import Slide
-from model.slide_czi_to_tif import SlideCziTif
-
+from model.histology import Histology as AlcHistology
+from model.scan_run import ScanRun as AlcScanRun
+from model.slide import Slide as AlcSlide
+from model.slide_czi_to_tif import SlideCziTif as AlcSlideCziTif
+from sql_setup import dj, database
 
 
 DATA_ROOT = '/net/birdstore/Active_Atlas_Data/data_root/pipeline_data'
 CZI = 'czi'
 TIF = 'tif'
+HIS = 'histogram'
 ROTATED = 'rotated'
 MASKED = 'masked'
 NORMALIZED = 'normalized'
 PRECOMPUTED = 'precomputed'
 PREPS = 'preps'
 THUMBNAIL = 'thumbnail'
+schema = dj.schema(database)
 
 
 class SlideProcessor(object):
@@ -48,11 +50,10 @@ class SlideProcessor(object):
                 
         self.CZI_FOLDER = os.path.join(DATA_ROOT, self.animal.prep_id, CZI)
         self.TIF_FOLDER = os.path.join(DATA_ROOT, self.animal.prep_id, TIF)
-        
-        
+
     def process_czi_dir(self):
         scan_id = max(self.scan_ids)
-        self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).delete(synchronize_session=False)
+        self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids)).delete(synchronize_session=False)
         self.session.commit()
         
         try:
@@ -60,15 +61,18 @@ class SlideProcessor(object):
         except OSError as e:
             print(e)
             sys.exit()
+            
         section_number = 1
+        #czi_files = ['DK43_slide060_2020_01_23__8024.czi']
+        slide_counter = 0
         for i, czi_file in enumerate(czi_files):
-            slide = Slide()
+            slide_counter += 1
+            slide = AlcSlide()
             slide.scan_run_id = scan_id
-            slide.slide_physical_id = i
+            slide.slide_physical_id = slide_counter
             slide.rescan_number = "1"
             slide.slide_status = 'Good'
             slide.processed = False
-            slide.processing_duration = 0
             slide.file_size = os.path.getsize(os.path.join(self.CZI_FOLDER, czi_file))
             slide.file_name = czi_file
             slide.created = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(self.CZI_FOLDER, czi_file)))
@@ -79,120 +83,45 @@ class SlideProcessor(object):
             czi_file_path = os.path.join(self.CZI_FOLDER, czi_file)
             metadata_dict = get_czi_metadata(czi_file_path)
             series = get_fullres_series_indices(metadata_dict)
+            scene_counter = 0
             for j, series_index in enumerate(series):
-                #j += 1
-                scene_number = series.index( series_index )
-                channels = range(metadata_dict[scene_number]['channels'])
+                scene_counter += 1
+                channels = range(metadata_dict[series_index]['channels'])
+                channel_counter = 0
                 width = metadata_dict[series_index]['width']
                 height = metadata_dict[series_index]['height']
-                #print(metadata_dict[scene_number]['channels'])
-                for channel in channels:                
+                for channel in channels:
+                    channel_counter += 1
                     newtif = os.path.splitext(czi_file)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(czi_file, j, channel)
+                    newtif = '{}_S{}_C{}.tif'.format(czi_file, scene_counter, channel_counter)
                     newtif = newtif.replace('.czi','')
-                    tif = SlideCziTif()
+                    tif = AlcSlideCziTif()
                     tif.slide_id = slide.id
                     tif.section_number = section_number
-                    tif.scene_number = j 
-                    tif.channel = channel
+                    tif.scene_number = scene_counter
+                    tif.channel = channel_counter
                     tif.file_name = newtif
                     tif.file_size = 0
+                    tif.active = 1
                     tif.width = width
                     tif.height = height
+                    tif.channel_index = channel
+                    tif.scene_index = series_index
+                    tif.processing_duration = 0
                     tif.created = time.strftime('%Y-%m-%d %H:%M:%S')
                     print('{}\t{}\t{}\t{}\t{}\t{}'.format(newtif, tif.slide_id, tif.scene_number, tif.channel, width, height))
                     self.session.add(tif)
                 section_number += 1
 
             self.session.commit()
-        
-    def update_tif_data(self):
-        
-        #SlideCziTif.__table__.delete().where(Slide.scan_run_id == scan_id)
-        #self.session.commit()
-        
-        try:
-            files = os.listdir(self.TIF_FOLDER)
-        except OSError as e:
-            print(e)
-            sys.exit()
-            
-        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
-        for slide in slides:
-            for tif in slide.slide_czi_tifs:
-                input_tif = os.path.join(self.TIF_FOLDER, tif.file_name)
-                if os.path.exists(input_tif):
-                    tif.file_size = os.path.getsize(input_tif)
-                    self.session.merge(tif)
-        self.session.commit()
-        
-    def get_slide_status(self, slide, series):
-        bad_slides = []
-        if slide.scene_qc_1 is not None:
-            bad_slides.append(series[0])
-        if slide.scene_qc_2 is not None:
-            bad_slides.append(series[1])
-        if slide.scene_qc_3 is not None:
-            bad_slides.append(series[2])
-        if slide.scene_qc_4 is not None:
-            bad_slides.append(series[3])
-        if slide.scene_qc_5 is not None and len(series) > 4:
-            bad_slides.append(series[4])
-        if slide.scene_qc_6 is not None and len(series) > 5:
-            bad_slides.append(series[5])
-        return bad_slides
-    
-        
-    def process_czi(self):
-        """
-        CZI to Tiff - LZW compression. Controls are about the same size Tiff as CZI (factor of 1 or 2). 
-        Add feedback to user after Big Table is populated.
-        """
-        try:
-            files_in_dir = os.listdir(self.CZI_FOLDER)
-        except OSError as e:
-            print(e)
-            sys.exit()
-                
-        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).filter(Slide.processed==False).filter(Slide.slide_status=='Good').all()
-        for slide in slides:
-            start = time.time()
-            czi_file = os.path.join(self.CZI_FOLDER, slide.file_name)
-            metadata_dict = get_czi_metadata(czi_file)
-            #print(metadata_dict)
-            series = get_fullres_series_indices(metadata_dict)
-            badslides = self.get_slide_status(slide,series)
-            series = [i for i in series if i not in badslides]
-            procs = []
-            for j, series_index in enumerate(series):
-                channels = range(metadata_dict[series_index]['channels'])
-                for channel in channels:                
-                    newtif = os.path.splitext(slide.file_name)[0]
-                    newtif = '{}_S{}_C{}.tif'.format(slide.file_name, j, channel)
-                    newtif = newtif.replace('.czi','')
-                    tif_file = os.path.join(self.TIF_FOLDER, newtif)
-                    command = ['/usr/local/share/bftools/bfconvert', '-bigtiff', '-compression', 'LZW', '-separate', 
-                              '-series', str(series_index), '-channel', str(channel), '-nooverwrite', czi_file, tif_file]
-                    cli = " ".join(command)
-                    print(cli)
-                    proc = subprocess.Popen(command, shell=False, stdin=None, stdout=None, stderr=None, close_fds=True)
-                    procs.append(proc)
-            proc = procs[-1]
-            proc.wait()
-            print('Finished proc.')
-            end = time.time()
-            slide.processed  = True
-            slide.processing_duration = end - start
-            self.session.merge(slide)
-            
-        self.session.commit()
+
 
     def compare_tif(self):
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         
-        slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids))
+        slides = self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids))
         slide_ids = [slide.id for slide in slides]
-        tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slide_ids))
+        tifs = self.session.query(AlcSlideCziTif).filter(AlcSlideCziTif.slide_id.in_(slide_ids))
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             img = io.imread(input_tif)
@@ -205,66 +134,157 @@ class SlideProcessor(object):
         try: 
             animal = self.session.query(Animal).filter(Animal.prep_id == self.animal.prep_id).one()
         except (NoResultFound):
-            print('No results found for prep_id: {}.'.format(self.prep_id))
+            print('No results found for prep_id: {}.'.format(animal.prep_id))
 
         try: 
-            histology = self.session.query(Histology).filter(Histology.prep_id == self.animal.prep_id).all()
+            self.session.query(AlcHistology).filter(AlcHistology.prep_id == animal.prep_id).all()
         except (NoResultFound):
-            print('No histology results found for prep_id: {}.'.format(self.prep_id))
+            print('No histology results found for prep_id: {}.'.format(animal.prep_id))
 
         try: 
-            scan_runs = self.session.query(ScanRun).filter(ScanRun.prep_id == self.animal.prep_id).all()
+            self.session.query(AlcScanRun).filter(AlcScanRun.prep_id == animal.prep_id).all()
         except (NoResultFound):
-            print('No scan run results found for prep_id: {}.'.format(self.prep_id))
+            print('No scan run results found for prep_id: {}.'.format(animal.prep_id))
 
         try:
-            slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+            self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids)).all()
         except (NoResultFound):
-            print('No slides found for prep_id: {}.'.format(self.prep_id))
+            print('No slides found for prep_id: {}.'.format(animal.prep_id))
 
         try: 
-            slides = self.session.query(Slide).filter(Slide.scan_run_id.in_(self.scan_ids)).all()
+            slides = self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids)).all()
             slides_ids = [slide.id for slide in slides]
-            tifs = self.session.query(SlideCziTif).filter(SlideCziTif.slide_id.in_(slides_ids))
+            tifs = self.session.query(AlcSlideCziTif).filter(AlcSlideCziTif.slide_id.in_(slides_ids))
             print('Found {} tifs'.format(tifs.count()))
         except (NoResultFound):
-            print('No tifs found for prep_id: {}.'.format(self.prep_id))
+            print('No tifs found for prep_id: {}.'.format(animal.prep_id))
+
+
+
+
+
+# End of table definitions
+
+
+def make_thumbnail(prep_id, file_name):
+    io.use_plugin('tifffile')
+
+    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
+    input_tif = os.path.join(DATA_ROOT, prep_id, TIF, file_name)
+
+    try:
+        img = io.imread(input_tif)
+    except:
+        return 0
+
+    img = everything(img, 1)
+    base = os.path.splitext(file_name)[0]
+    output_png = os.path.join(OUTPUT, base + '.png')
+    try:
+        io.imsave(output_png, img, check_contrast=False)
+    except:
+        return 0
+
+    return 1
+
+def make_histogram(session, prep_id, file_id):
+    tif = session.query(AlcSlideCziTif).filter(AlcSlideCziTif.id==file_id).one()
+    HIS_FOLDER = os.path.join(DATA_ROOT, prep_id, HIS)
+    TIF_FOLDER = os.path.join(DATA_ROOT, prep_id, TIF)
+    input_tif = os.path.join(TIF_FOLDER, tif.file_name)
+    base = os.path.splitext(tif.file_name)[0]
+    output_png = os.path.join(HIS_FOLDER, base + '.png')
+    try:
+        img = io.imread(input_tif)
+    except:
+        return 0
+
+    colors = {1:'b', 2:'r', 3:'g'}
+    fig = plt.figure()
+    plt.rcParams['figure.figsize'] = [10, 6]
+    if img.shape[0] * img.shape[1] > 1000000000:
+        scale = 1 / float(2)
+        img = img[::int(1. / scale), ::int(1. / scale)]
+    try:
+        flat = img.flatten()
+    except:
+        return 0
+    fmax = flat.max()
+    plt.hist(flat, fmax, [0, fmax], color=colors[tif.channel])
+    plt.style.use('ggplot')
+    plt.yscale('log')
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.title('{} @16bit'.format(tif.file_name))
+    fig.savefig(output_png, bbox_inches='tight')
+    return 1
+
+
+def make_tif(session, prep_id, file_id):
+    CZI_FOLDER = os.path.join(DATA_ROOT, prep_id, CZI)
+    TIF_FOLDER = os.path.join(DATA_ROOT, prep_id, TIF)
+    start = time.time()
+    tif = session.query(AlcSlideCziTif).filter(AlcSlideCziTif.id==file_id).one()
+    slide = session.query(AlcSlide).filter(AlcSlide.id==tif.slide_id).one()
+    czi_file = os.path.join(CZI_FOLDER, slide.file_name)
+        
+    tif_file = os.path.join(TIF_FOLDER, tif.file_name)
+    command = ['/usr/local/share/bftools/bfconvert', '-bigtiff', '-compression', 'LZW', '-separate', 
+                              '-series', str(tif.scene_index), '-channel', str(tif.channel_index), '-nooverwrite', czi_file, tif_file]
+    #cli = " ".join(command)
+    #command = ['touch', tif_file]
+    subprocess.run(command)
+    #print(cli)
+
+    end = time.time()
+    if os.path.exists(tif_file):
+        tif.file_size = os.path.getsize(tif_file)
+
+    tif.processing_duration = end - start
+    session.merge(tif)
+    session.commit()
+
+    #session.commit()
+    return 1
+
 
 def everything(img, rotation):
     scale = 1 / float(32)
-    two_16 = 2**16
+    two_16 = 2 ** 16
     img = np.rot90(img, rotation)
     img = np.fliplr(img)
-    img = img[::int(1./scale), ::int(1./scale)]
+    img = img[::int(1. / scale), ::int(1. / scale)]
     flat = img.flatten()
-    hist,bins = np.histogram(flat,two_16)
-    cdf = hist.cumsum() #cumulative distribution function
-    cdf = two_16 * cdf / cdf[-1] #normalize
-    #use linear interpolation of cdf to find new pixel values
-    img_norm = np.interp(flat,bins[:-1],cdf)
+    hist, bins = np.histogram(flat, two_16)
+    cdf = hist.cumsum()  # cumulative distribution function
+    cdf = two_16 * cdf / cdf[-1]  # normalize
+    # use linear interpolation of cdf to find new pixel values
+    img_norm = np.interp(flat, bins[:-1], cdf)
     img_norm = np.reshape(img_norm, img.shape)
     img_norm = two_16 - img_norm
     return img_norm.astype('uint16')
-                                                
-            
-            
+
+
 def lognorm(img, limit):
     lxf = np.log(img + 0.005)
     lxf = np.where(lxf < 0, 0, lxf)
-    xmin = min(lxf.flatten()) 
+    xmin = min(lxf.flatten())
     xmax = max(lxf.flatten())
-    return -lxf*limit/(xmax-xmin) + xmax*limit/(xmax-xmin) #log of data and stretch 0 to 255
+    return -lxf * limit / (xmax - xmin) + xmax * limit / (xmax - xmin)  # log of data and stretch 0 to 255
+
 
 def linnorm(img, limit):
     flat = img.flatten()
-    hist,bins = np.histogram(flat,limit + 1)
-    cdf = hist.cumsum() #cumulative distribution function
-    cdf = limit * cdf / cdf[-1] #normalize
-    #use linear interpolation of cdf to find new pixel values
-    img_norm = np.interp(flat,bins[:-1],cdf)
+    hist, bins = np.histogram(flat, limit + 1)
+    cdf = hist.cumsum()  # cumulative distribution function
+    cdf = limit * cdf / cdf[-1]  # normalize
+    # use linear interpolation of cdf to find new pixel values
+    img_norm = np.interp(flat, bins[:-1], cdf)
     img_norm = np.reshape(img_norm, img.shape)
     img_norm = limit - img_norm
     return img_norm
+
 
 def flip_rotate(prep_id, tif):
     io.use_plugin('tifffile')
@@ -272,76 +292,31 @@ def flip_rotate(prep_id, tif):
     OUTPUT = os.path.join(DATA_ROOT, prep_id, ROTATED)
     input_tif = os.path.join(INPUT, tif)
     output_tif = os.path.join(OUTPUT, tif)
-    status = "Image rotated"
-    
+
     try:
         img = io.imread(input_tif)
     except:
         return 'Bad file size'
-        
-    # convert to 8bit
-    #img = (img/256).astype('uint8')
-        
+
     try:
         img = np.rot90(img, 1)
     except:
-        print('could not rotate',tif)
-        
+        print('could not rotate', tif)
+
     try:
         img = np.fliplr(img)
     except:
-        print('could not flip',tif)
-        
+        print('could not flip', tif)
+
     try:
         img = img_as_uint(img)
     except:
-        print('could not convert to 16bit',tif)
-    
+        print('could not convert to 16bit', tif)
+
     try:
         io.imsave(output_tif, img)
     except:
         print('Could not save {}'.format(output_tif))
 
-    return " Flipped and rotated"    
-
-
-
-def make_thumbnail(prep_id, tif):
-    io.use_plugin('tifffile')
-    INPUT = os.path.join(DATA_ROOT, prep_id, TIF)
-    OUTPUT = os.path.join(DATA_ROOT, prep_id, THUMBNAIL)
-    input_tif = os.path.join(INPUT, tif)
-    output_tif = os.path.join(OUTPUT, tif)
-    status = "Thumbnail created"
-    
-    try:
-        img = io.imread(input_tif)
-    except:
-        return 'Bad file size'
-        
-    """
-    scale = (1/float(32))
-    try:        
-        #img_tb = cv.resize(img, dim, interpolation = cv.INTER_AREA)
-        img = img[::int(1./scale), ::int(1./scale)]
-    except:
-        return "Could not scale"
-    
-    two_16 = 2**16
-    if '_C0' in input_tif:
-        img = linnorm(img, two_16)
-        status += " linear equalization on C0"
-    else:
-        img = lognorm(img, two_16)
-        status += " log norm equalization on C1,2"    
-    """
-    img = everything(img, 1)
-    base = os.path.splitext(tif)[0]
-    output_png = os.path.join(OUTPUT, base + '.png')
-    try:
-        io.imsave(output_png, img, check_contrast=False)
-    except:
-        status += " Could not save"
-
-    return " Thumbnail created"    
+    return " Flipped and rotated"
 
