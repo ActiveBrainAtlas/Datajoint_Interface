@@ -134,6 +134,6 @@ def manipulate_images(id):
     if len(slide_ids) == 1:
         slide_ids = (slide_ids[0])
         restriction = 'slide_id = {}'.format(slide_ids)
-
+    #print(restriction)
     FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True)
 

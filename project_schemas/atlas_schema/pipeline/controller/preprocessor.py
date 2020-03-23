@@ -218,6 +218,7 @@ def make_histogram(session, prep_id, file_id):
     plt.ylabel('Frequency')
     plt.title('{} @16bit'.format(tif.file_name))
     fig.savefig(output_png, bbox_inches='tight')
+    plt.close()
     return 1
 
 

@@ -1,7 +1,4 @@
 import argparse
-import yaml
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from model.animal import Animal
 import sys
@@ -18,8 +15,8 @@ def fetch_and_run(prep_id):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    slide_processor.process_czi_dir()
-    #manipulate_images(prep_id)
+    #slide_processor.process_czi_dir()
+    manipulate_images(prep_id)
     #slide_processor.test_tables()
 
 def download(prep_id, session, engine):
