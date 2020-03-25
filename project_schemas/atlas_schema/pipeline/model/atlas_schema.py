@@ -105,11 +105,12 @@ class FileOperation(dj.Computed):
     def make(self, key):
         file_id = (SlideCziToTif & key).fetch1('id')
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
-        #histogram = make_histogram(session, prep_id, np.asscalar(file_id))
-        #thumbnail = make_thumbnail(prep_id, file_name)
-        thumbnail = 0
-        histogram = 0
+        #czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
+        czi_to_tif = 1
+        histogram = make_histogram(session, prep_id, np.asscalar(file_id))
+        thumbnail = make_thumbnail(prep_id, file_name)
+        #thumbnail = 0
+        #histogram = 0
         self.insert1(dict(key, file_name=file_name,
                           created=datetime.now(),
                           thumbnail=thumbnail,
@@ -137,5 +138,5 @@ def manipulate_images(id):
         slide_ids = (slide_ids[0])
         restriction = 'slide_id = {}'.format(slide_ids)
     #print(restriction)
-    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True)
+    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True, limit=100)
 

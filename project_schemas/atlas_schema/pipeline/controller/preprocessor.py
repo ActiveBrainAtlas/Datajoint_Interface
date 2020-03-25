@@ -182,6 +182,7 @@ def make_thumbnail(prep_id, file_name):
     output_png = os.path.join(OUTPUT, base + '.png')
     try:
         io.imsave(output_png, img, check_contrast=False)
+        del img
     except:
         return 0
 
@@ -209,6 +210,7 @@ def make_histogram(session, prep_id, file_id):
         flat = img.flatten()
     except:
         return 0
+    del img
     fmax = flat.max()
     plt.hist(flat, fmax, [0, fmax], color=colors[tif.channel])
     plt.style.use('ggplot')
@@ -219,6 +221,7 @@ def make_histogram(session, prep_id, file_id):
     plt.title('{} @16bit'.format(tif.file_name))
     fig.savefig(output_png, bbox_inches='tight')
     plt.close()
+    del flat
     return 1
 
 
