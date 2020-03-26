@@ -280,7 +280,10 @@ def everything_cv(img, rotation):
     height = int(img.shape[0] * scale)
     dim = (width, height)
     # resize image
-    img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+    try:
+        img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+    except:
+        return 0
     flat = img.flatten()
     hist, bins = np.histogram(flat, two_16)
     cdf = hist.cumsum()  # cumulative distribution function
