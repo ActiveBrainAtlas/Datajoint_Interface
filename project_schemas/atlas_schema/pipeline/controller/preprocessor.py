@@ -279,6 +279,7 @@ def everything_cv(img, rotation):
     width = int(img.shape[1] * scale)
     height = int(img.shape[0] * scale)
     dim = (width, height)
+    print('img shape', img.shape)
     # resize image
     try:
         img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
