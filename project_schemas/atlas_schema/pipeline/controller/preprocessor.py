@@ -177,17 +177,51 @@ def make_thumbnail(prep_id, file_name):
         img = io.imread(input_tif)
     except:
         return 0
+    print(input_tif, img.shape)
+    return 0
 
     img = everything_cv(img, 1)
     base = os.path.splitext(file_name)[0]
     output_png = os.path.join(OUTPUT, base + '.png')
     try:
-        io.imsave(output_png, img, check_contrast=False)
+        #io.imsave(output_png, img, check_contrast=False)
+        cv.imsave(output_png, img)
         del img
     except:
         return 0
 
     return 1
+
+def everything_cv(img, rotation):
+    scale = 1 / float(32)
+    two_16 = 2 ** 16
+    print('img shape', img.shape)
+
+    if img.ndim > 2:
+        img = img.shape
+
+
+    img = np.rot90(img, rotation)
+    img = np.fliplr(img)
+    #img = img[::int(1. / scale), ::int(1. / scale)]
+    width = int(img.shape[-2] * scale)
+    height = int(img.shape[-1] * scale)
+    dim = (width, height)
+    print('img shape', img.shape)
+    # resize image
+    try:
+        img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+    except:
+        return 0
+    flat = img.flatten()
+    hist, bins = np.histogram(flat, two_16)
+    cdf = hist.cumsum()  # cumulative distribution function
+    cdf = two_16 * cdf / cdf[-1]  # normalize
+    # use linear interpolation of cdf to find new pixel values
+    img_norm = np.interp(flat, bins[:-1], cdf)
+    img_norm = np.reshape(img_norm, img.shape)
+    img_norm = two_16 - img_norm
+    return img_norm.astype('uint16')
 
 def make_histogram(session, prep_id, file_id):
     tif = session.query(AlcSlideCziTif).filter(AlcSlideCziTif.id==file_id).one()
@@ -260,31 +294,6 @@ def everything(img, rotation):
     img = np.rot90(img, rotation)
     img = np.fliplr(img)
     img = img[::int(1. / scale), ::int(1. / scale)]
-    flat = img.flatten()
-    hist, bins = np.histogram(flat, two_16)
-    cdf = hist.cumsum()  # cumulative distribution function
-    cdf = two_16 * cdf / cdf[-1]  # normalize
-    # use linear interpolation of cdf to find new pixel values
-    img_norm = np.interp(flat, bins[:-1], cdf)
-    img_norm = np.reshape(img_norm, img.shape)
-    img_norm = two_16 - img_norm
-    return img_norm.astype('uint16')
-
-def everything_cv(img, rotation):
-    scale = 1 / float(32)
-    two_16 = 2 ** 16
-    img = np.rot90(img, rotation)
-    img = np.fliplr(img)
-    #img = img[::int(1. / scale), ::int(1. / scale)]
-    width = int(img.shape[1] * scale)
-    height = int(img.shape[0] * scale)
-    dim = (width, height)
-    print('img shape', img.shape)
-    # resize image
-    try:
-        img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
-    except:
-        return 0
     flat = img.flatten()
     hist, bins = np.histogram(flat, two_16)
     cdf = hist.cumsum()  # cumulative distribution function
