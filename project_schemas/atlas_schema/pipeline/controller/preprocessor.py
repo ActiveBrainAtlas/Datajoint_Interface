@@ -9,6 +9,7 @@ uint8 by default (See Image data types and what they mean). BGR stands for Blue 
 from sqlalchemy.orm.exc import NoResultFound
 import os, sys, subprocess, time, datetime
 from matplotlib import pyplot as plt
+import cv2 as cv
 from skimage import io
 from skimage.util import img_as_uint
 import numpy as np
@@ -177,7 +178,7 @@ def make_thumbnail(prep_id, file_name):
     except:
         return 0
 
-    img = everything(img, 1)
+    img = everything_cv(img, 1)
     base = os.path.splitext(file_name)[0]
     output_png = os.path.join(OUTPUT, base + '.png')
     try:
@@ -259,6 +260,27 @@ def everything(img, rotation):
     img = np.rot90(img, rotation)
     img = np.fliplr(img)
     img = img[::int(1. / scale), ::int(1. / scale)]
+    flat = img.flatten()
+    hist, bins = np.histogram(flat, two_16)
+    cdf = hist.cumsum()  # cumulative distribution function
+    cdf = two_16 * cdf / cdf[-1]  # normalize
+    # use linear interpolation of cdf to find new pixel values
+    img_norm = np.interp(flat, bins[:-1], cdf)
+    img_norm = np.reshape(img_norm, img.shape)
+    img_norm = two_16 - img_norm
+    return img_norm.astype('uint16')
+
+def everything_cv(img, rotation):
+    scale = 1 / float(32)
+    two_16 = 2 ** 16
+    img = np.rot90(img, rotation)
+    img = np.fliplr(img)
+    #img = img[::int(1. / scale), ::int(1. / scale)]
+    width = int(img.shape[1] * scale)
+    height = int(img.shape[0] * scale)
+    dim = (width, height)
+    # resize image
+    img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
     flat = img.flatten()
     hist, bins = np.histogram(flat, two_16)
     cdf = hist.cumsum()  # cumulative distribution function

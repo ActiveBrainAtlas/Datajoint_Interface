@@ -3,6 +3,7 @@ from datetime import datetime
 from controller.preprocessor import make_thumbnail, make_histogram, make_tif
 from sql_setup import session, dj, database
 import sys
+import time
 
 # Get the specified schema reference
 schema = dj.schema(database)
@@ -99,22 +100,25 @@ class FileOperation(dj.Computed):
     thumbnail: tinyint
     czi_to_tif: tinyint
     histogram: tinyint
+    processing_duration: float
     created: datetime
     """
     
     def make(self, key):
+        start = time.time()
         file_id = (SlideCziToTif & key).fetch1('id')
         file_name = (SlideCziToTif & key).fetch1('file_name')
         #czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
         czi_to_tif = 1
-        histogram = make_histogram(session, prep_id, np.asscalar(file_id))
-        #thumbnail = make_thumbnail(prep_id, file_name)
-        thumbnail = 0
-        #histogram = 0
+        #histogram = make_histogram(session, prep_id, np.asscalar(file_id))
+        thumbnail = make_thumbnail(prep_id, file_name)
+        histogram = 1
+        end = time.time()
         self.insert1(dict(key, file_name=file_name,
                           created=datetime.now(),
                           thumbnail=thumbnail,
                           czi_to_tif = czi_to_tif,
+                          processing_duration=end - start,
                           histogram = histogram), skip_duplicates=True)
 # End of table definitions
 
@@ -138,5 +142,5 @@ def manipulate_images(id):
         slide_ids = (slide_ids[0])
         restriction = 'slide_id = {}'.format(slide_ids)
     #print(restriction)
-    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True)
+    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True, limit=100)
 
