@@ -36,5 +36,6 @@ if __name__ == '__main__':
     prep_id = args.prep_id
     xlsx = args.xlsx
     limit = args.limit or 10000
+    limit = int(limit)
     fetch_and_run(prep_id, limit)
     #download(prep_id, session, engine)
