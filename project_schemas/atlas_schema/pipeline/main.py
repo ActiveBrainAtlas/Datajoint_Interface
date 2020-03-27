@@ -7,7 +7,7 @@ from controller.spreadsheet_utilities import upload_spreadsheet, download_spread
 from model.atlas_schema import manipulate_images
 from sql_setup import session
 
-def fetch_and_run(prep_id):
+def fetch_and_run(prep_id, limit):
     try: 
         animal = session.query(Animal).filter(Animal.prep_id == prep_id).one()
     except (NoResultFound):
@@ -16,7 +16,7 @@ def fetch_and_run(prep_id):
         
     slide_processor = SlideProcessor(animal, session)
     #slide_processor.process_czi_dir()
-    #manipulate_images(prep_id)
+    manipulate_images(prep_id, limit)
     slide_processor.update_tif_data()
     slide_processor.test_tables()
 
@@ -30,9 +30,11 @@ if __name__ == '__main__':
     # Parsing argument
     parser = argparse.ArgumentParser(description='Work on Animal')
     parser.add_argument('--prep_id', help='Enter the animal prep_id', required=True)
-    parser.add_argument('--xlsx', help='Enter the spreadsheet to upload')
+    parser.add_argument('--xlsx', help='Enter the spreadsheet to upload', required=False)
+    parser.add_argument('--limit', help='Enter the number of TIF files to process', required=False)
     args = parser.parse_args()
     prep_id = args.prep_id
     xlsx = args.xlsx
-    fetch_and_run(prep_id)
+    limit = args.limit or 10000
+    fetch_and_run(prep_id, limit)
     #download(prep_id, session, engine)

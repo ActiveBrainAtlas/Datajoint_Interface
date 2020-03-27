@@ -108,11 +108,11 @@ class FileOperation(dj.Computed):
         start = time.time()
         file_id = (SlideCziToTif & key).fetch1('id')
         file_name = (SlideCziToTif & key).fetch1('file_name')
-        #czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
-        czi_to_tif = 1
-        #histogram = make_histogram(session, prep_id, np.asscalar(file_id))
+        czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
+        #czi_to_tif = 1
+        histogram = make_histogram(session, prep_id, np.asscalar(file_id))
         thumbnail = make_thumbnail(prep_id, file_name)
-        histogram = 1
+        #histogram = 1
         end = time.time()
         self.insert1(dict(key, file_name=file_name,
                           created=datetime.now(),
@@ -123,7 +123,7 @@ class FileOperation(dj.Computed):
 # End of table definitions
 
 
-def manipulate_images(id):
+def manipulate_images(id, limit):
     global prep_id
     prep_id = id
     scans = (ScanRun & ('prep_id = "{}"'.format(prep_id))).fetch("KEY")
@@ -142,5 +142,5 @@ def manipulate_images(id):
         slide_ids = (slide_ids[0])
         restriction = 'slide_id = {}'.format(slide_ids)
     #print(restriction)
-    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True, limit=2000)
+    FileOperation.populate([SlideCziToTif & 'active=1' & restriction ], display_progress=True, reserve_jobs=True, limit=limit)
 
