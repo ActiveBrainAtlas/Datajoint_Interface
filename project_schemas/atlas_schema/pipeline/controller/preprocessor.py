@@ -9,7 +9,6 @@ uint8 by default (See Image data types and what they mean). BGR stands for Blue 
 from sqlalchemy.orm.exc import NoResultFound
 import os, sys, subprocess, time, datetime
 from matplotlib import pyplot as plt
-import cv2 as cv
 from skimage import io
 from skimage.util import img_as_uint
 import numpy as np
@@ -116,13 +115,29 @@ class SlideProcessor(object):
 
             self.session.commit()
 
+    def update_tif_data(self):
+        try:
+            os.listdir(self.TIF_FOLDER)
+        except OSError as e:
+            print(e)
+            sys.exit()
+
+        slides = self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids)).filter(AlcSlide.slide_status=='Good').all()
+        slide_ids = [slide.id for slide in slides]
+        tifs = self.session.query(AlcSlideCziTif).filter(AlcSlideCziTif.slide_id.in_(slide_ids)).filter(AlcSlideCziTif.active==1).all()
+        for tif in tifs:
+            if os.path.exists(os.path.join(self.TIF_FOLDER, tif.file_name)):
+                tif.file_size = os.path.getsize(os.path.join(self.TIF_FOLDER, tif.file_name))
+                self.session.merge(tif)
+        self.session.commit()
+
 
     def compare_tif(self):
         INPUT = os.path.join(DATA_ROOT, self.brain, TIF)
         
         slides = self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids))
         slide_ids = [slide.id for slide in slides]
-        tifs = self.session.query(AlcSlideCziTif).filter(AlcSlideCziTif.slide_id.in_(slide_ids))
+        tifs = self.session.query(AlcSlideCziTif).filter(AlcSlideCziTif.slide_id.in_(slide_ids)).filter(active=1)
         for tif in tifs:
             input_tif = os.path.join(INPUT, tif.file_name)
             img = io.imread(input_tif)
@@ -195,14 +210,8 @@ def everything_cv(img, rotation):
     two_16 = 2 ** 16
     img = np.rot90(img, rotation)
     img = np.fliplr(img)
-    #img = img[::int(1. / scale), ::int(1. / scale)]
-    #width = int(img.shape[-2] * scale)
-    #height = int(img.shape[-1] * scale)
-    #dim = (width, height)
-    # resize image
     try:
         img = img[::int(1. / scale), ::int(1. / scale)]
-        #img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
     except:
         print('Cannot resize')
         return 0
@@ -285,23 +294,6 @@ def make_tif(session, prep_id, file_id):
 
     #session.commit()
     return 1
-
-
-def everything(img, rotation):
-    scale = 1 / float(32)
-    two_16 = 2 ** 16
-    img = np.rot90(img, rotation)
-    img = np.fliplr(img)
-    img = img[::int(1. / scale), ::int(1. / scale)]
-    flat = img.flatten()
-    hist, bins = np.histogram(flat, two_16)
-    cdf = hist.cumsum()  # cumulative distribution function
-    cdf = two_16 * cdf / cdf[-1]  # normalize
-    # use linear interpolation of cdf to find new pixel values
-    img_norm = np.interp(flat, bins[:-1], cdf)
-    img_norm = np.reshape(img_norm, img.shape)
-    img_norm = two_16 - img_norm
-    return img_norm.astype('uint16')
 
 
 def lognorm(img, limit):
