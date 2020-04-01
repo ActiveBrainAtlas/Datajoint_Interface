@@ -212,6 +212,7 @@ def everything_cv(img, rotation):
     img = np.fliplr(img)
     try:
         img = img[::int(1. / scale), ::int(1. / scale)]
+        #img[:, ::2, ::2]
     except:
         print('Cannot resize')
         return 0

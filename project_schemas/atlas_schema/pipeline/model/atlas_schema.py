@@ -109,11 +109,8 @@ class FileOperation(dj.Computed):
         file_id = (SlideCziToTif & key).fetch1('id')
         file_name = (SlideCziToTif & key).fetch1('file_name')
         czi_to_tif = make_tif(session, prep_id, np.asscalar(file_id))
-        #czi_to_tif = 1
         histogram = make_histogram(session, prep_id, np.asscalar(file_id))
-        #thumbnail = make_thumbnail(prep_id, file_name)
-        #histogram = 1
-        thumbnail = 0
+        thumbnail = make_thumbnail(prep_id, file_name)
         end = time.time()
         self.insert1(dict(key, file_name=file_name,
                           created=datetime.now(),
