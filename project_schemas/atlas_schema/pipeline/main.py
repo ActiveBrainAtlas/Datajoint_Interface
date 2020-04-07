@@ -15,8 +15,8 @@ def fetch_and_run(prep_id, limit):
         sys.exit()
         
     slide_processor = SlideProcessor(animal, session)
-    #slide_processor.process_czi_dir()
-    manipulate_images(prep_id, limit)
+    slide_processor.process_czi_dir()
+    #manipulate_images(prep_id, limit)
     #slide_processor.update_tif_data()
     #slide_processor.test_tables()
 

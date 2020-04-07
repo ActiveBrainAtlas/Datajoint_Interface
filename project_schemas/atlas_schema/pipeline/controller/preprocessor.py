@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 from skimage import io
 from skimage.util import img_as_uint
 import numpy as np
+import re
 from .bioformats_utilities import get_czi_metadata, get_fullres_series_indices
 from model.animal import Animal
 from model.histology import Histology as AlcHistology
@@ -64,12 +65,10 @@ class SlideProcessor(object):
             
         section_number = 1
         #czi_files = ['DK43_slide060_2020_01_23__8024.czi']
-        slide_counter = 0
         for i, czi_file in enumerate(czi_files):
-            slide_counter += 1
             slide = AlcSlide()
             slide.scan_run_id = scan_id
-            slide.slide_physical_id = slide_counter
+            slide.slide_physical_id = int(re.findall(r'\d+', czi_file)[1])
             slide.rescan_number = "1"
             slide.slide_status = 'Good'
             slide.processed = False
