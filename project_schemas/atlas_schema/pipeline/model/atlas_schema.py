@@ -194,17 +194,17 @@ class Slide(dj.Manual):  # prior to segregation of animals and scenes on each sl
     scenes = NULL     : int
     rescan_number     : enum("", "1", "2", "3")
     insert_before_one = 0 : tinyint
-    scene_qc_1 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
+    scene_qc_1 = NULL   : enum("Out-of-Focus", "Bad tissue") # Missing are ignored and include folds, dirt over sample 
     insert_between_one_two = 0 : tinyint
-    scene_qc_2 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue")
+    scene_qc_2 = NULL   : enum("Out-of-Focus", "Bad tissue")
      insert_between_two_three = 0 : tinyint
-    scene_qc_3 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_3 = NULL   : enum("Out-of-Focus", "Bad tissue") 
     insert_between_three_four = 0 : tinyint
-    scene_qc_4 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_4 = NULL   : enum("Out-of-Focus", "Bad tissue") 
     insert_between_four_five = 0 : tinyint
-    scene_qc_5 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") 
+    scene_qc_5 = NULL   : enum("Out-of-Focus", "Bad tissue") 
     insert_between_five_six = 0 : tinyint
-    scene_qc_6 = ""   : enum("", "Missing one section", "two", "three", "four", "five", "six","O-o-F", "Bad tissue") #"Bad tissue" is interpretted as one missing section
+    scene_qc_6 = NULL   : enum("Out-of-Focus", "Bad tissue") #"Bad tissue" is interpretted as one missing section
     file_name = NULL  : varchar(200)               # folder on Birdstore
     file_size = 0 : float 
     processing_duration = 0 : float
