@@ -4,10 +4,19 @@ It is possible that you may need to use an image created using skimage with Open
 OpenCV image data can be accessed (without copying) in NumPy (and, thus, in scikit-image). 
 OpenCV uses BGR (instead of scikit-image’s RGB) for color images, and its dtype is 
 uint8 by default (See Image data types and what they mean). BGR stands for Blue Green Red.
+Here is ID, values for the progress lookup table:
+|  1 | Slides are scanned                     | prepipeline |
+|  2 | CZI files are placed on birdstore      | prepipeline |
+|  3 | CZI files are scanned to get metadata  | prepipeline |
+|  4 | QC is one on slides in admin area      | prepipeline |
+|  5 | CZI files are converted into TIF files | prepipeline |
+|  6 | Thumbnails and histograms are created  | prepipeline |
+|  7 | Section list is created and exported   | prepipeline |
 """
 
 from sqlalchemy.orm.exc import NoResultFound
-import os, sys, subprocess, time, datetime
+import os, sys, subprocess, time
+from datetime import datetime
 from matplotlib import pyplot as plt
 from skimage import io
 from skimage.util import img_as_uint
@@ -19,6 +28,7 @@ from model.histology import Histology as AlcHistology
 from model.scan_run import ScanRun as AlcScanRun
 from model.slide import Slide as AlcSlide
 from model.slide_czi_to_tif import SlideCziTif as AlcSlideCziTif
+from model.task import Task, ProgressLookup
 from sql_setup import dj, database
 
 
@@ -53,8 +63,20 @@ class SlideProcessor(object):
         self.TIF_FOLDER = os.path.join(DATA_ROOT, self.animal.prep_id, TIF)
 
     def process_czi_dir(self):
+        """
+        After the CZI files are placed on birdstore, they need to be scanned to get the metadata for
+        the tif files. Set the progress status here.
+        """
+        lookup_ids = [1,2,3]
         scan_id = max(self.scan_ids)
         self.session.query(AlcSlide).filter(AlcSlide.scan_run_id.in_(self.scan_ids)).delete(synchronize_session=False)
+        self.session.query(Task).filter(Task.lookup_id.in_(lookup_ids))\
+            .filter(Task.prep_id == self.animal.prep_id)\
+            .delete(synchronize_session=False)
+        for i in lookup_ids:
+            task = Task(self.animal.prep_id, i, True)
+            self.session.add(task)
+
         self.session.commit()
         
         try:
@@ -74,7 +96,7 @@ class SlideProcessor(object):
             slide.processed = False
             slide.file_size = os.path.getsize(os.path.join(self.CZI_FOLDER, czi_file))
             slide.file_name = czi_file
-            slide.created = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(self.CZI_FOLDER, czi_file)))
+            slide.created = datetime.fromtimestamp(os.path.getmtime(os.path.join(self.CZI_FOLDER, czi_file)))
             self.session.add(slide)
             self.session.flush()
             
@@ -111,8 +133,13 @@ class SlideProcessor(object):
                     print('{}\t{}\t{}\t{}\t{}\t{}'.format(newtif, tif.slide_id, tif.scene_number, tif.channel, width, height))
                     self.session.add(tif)
                 section_number += 1
+        # lookup_id=3 is for the scanning CZI
+        task =   self.session.query(Task).filter(Task.lookup_id == 3)\
+        .filter(Task.prep_id == self.animal.prep_id).one()
+        task.end_date = datetime.now()
+        self.session.merge(task)
 
-            self.session.commit()
+        self.session.commit()
 
     def update_tif_data(self):
         try:
